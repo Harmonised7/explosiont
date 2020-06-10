@@ -13,6 +13,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 
 import java.util.*;
@@ -66,8 +67,10 @@ public class WorldTickHandler
                             world.setTileEntity( blockInfo.pos, TileEntity.create( blockInfo.tileEntityNBT ) );
 //                        blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
 
+                        System.out.println( blockInfo.pos );
+
                         Random rand = new Random();
-                        world.playSound( blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_DRAGON_FIREBALL_EXPLODE, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F, true );
+                        world.playSound( null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F );
                     }
                     else
                     {

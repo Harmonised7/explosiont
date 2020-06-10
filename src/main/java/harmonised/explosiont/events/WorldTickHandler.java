@@ -24,7 +24,6 @@ public class WorldTickHandler
 {
     private static final double healDelay = 5000;
     private static final double eachHealDelay = 50;
-    public static List<ExplosionInfo> explosions = new ArrayList<>();
     public static List<BlockInfo> blocksToHeal = new ArrayList<>();
     public static long lastHeal = System.currentTimeMillis();
 

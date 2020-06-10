@@ -22,6 +22,7 @@ public class WorldTickHandler
 {
     private static double healDelay = Config.config.healDelay.get();
     private static double eachHealDelay = Config.config.eachHealDelay.get();
+    private static final Random rand = new Random();
     public static long lastHeal = System.currentTimeMillis();
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
@@ -60,17 +61,12 @@ public class WorldTickHandler
 
                     IFluidState fluidInfo = world.getFluidState( blockInfo.pos );
 
-                    if( block.equals( Blocks.AIR ) || ( fluidInfo.isEmpty() || !fluidInfo.isSource() ) )
+                    if( block.equals( Blocks.AIR ) || fluidInfo.isEmpty() )
                     {
                         world.setBlockState( blockInfo.pos, blockInfo.state );
                         if( blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0 )
                             world.setTileEntity( blockInfo.pos, TileEntity.create( blockInfo.tileEntityNBT ) );
 //                        blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
-
-                        System.out.println( blockInfo.pos );
-
-                        Random rand = new Random();
-                        world.playSound( null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F );
                     }
                     else
                     {
@@ -88,6 +84,7 @@ public class WorldTickHandler
                         }
                     }
 
+                    world.playSound( null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F );
                     blocksToHeal.remove( 0 );
                 }
             }

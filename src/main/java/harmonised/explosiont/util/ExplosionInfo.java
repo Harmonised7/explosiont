@@ -5,7 +5,7 @@ import java.util.List;
 public class ExplosionInfo
 {
     public List<BlockInfo> blocks;
-    public int age;
+    public double age;
 
     public ExplosionInfo( List<BlockInfo> blocks, int age )
     {

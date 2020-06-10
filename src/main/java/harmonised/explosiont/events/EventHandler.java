@@ -1,6 +1,7 @@
 package harmonised.explosiont.events;
 
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.world.ChunkDataEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -19,5 +20,17 @@ public class EventHandler
     public static void worldTick( TickEvent.WorldTickEvent event )
     {
         WorldTickHandler.handleWorldTick( event );
+    }
+
+    @SubscribeEvent
+    public static void chunkDataLoad( ChunkDataEvent.Load event )
+    {
+        ChunkDataHandler.handleChunkDataLoad( event );
+    }
+
+    @SubscribeEvent
+    public static void chunkDataSave( ChunkDataEvent.Save event )
+    {
+        ChunkDataHandler.handleChunkDataSave( event );
     }
 }

@@ -8,11 +8,11 @@ import java.util.Map;
 
 public class Config
 {
-    public static ConfigImplementation forgeConfig;
+    public static ConfigImplementation config;
 
     public static void init()
     {
-        forgeConfig = ConfigHelper.register( ModConfig.Type.COMMON, ConfigImplementation::new );
+        config = ConfigHelper.register( ModConfig.Type.COMMON, ConfigImplementation::new );
     }
 
     public static class ConfigImplementation
@@ -22,7 +22,7 @@ public class Config
 
         public ConfigImplementation(ForgeConfigSpec.Builder builder, ConfigHelper.Subscriber subscriber)
         {
-            builder.push( "Miscellaneous" );
+            builder.push( "Explosiont" );
             {
                 this.healDelay = subscriber.subscribe(builder
                         .comment( "How long should explosions wait before starting to heal? (SECONDS)" )

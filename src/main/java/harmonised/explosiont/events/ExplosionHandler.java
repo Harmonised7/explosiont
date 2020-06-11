@@ -18,7 +18,7 @@ import java.util.*;
 public class ExplosionHandler
 {
     private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
-    private static final double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
+    private static final double ticksPerHeal = Config.config.ticksPerHeal.get();
 
     public static void handleExplosion( ExplosionEvent.Detonate event )
     {
@@ -34,6 +34,9 @@ public class ExplosionHandler
         List<BlockPos> affectedBlocks = event.getExplosion().getAffectedBlockPositions();
         affectedBlocks.sort( Comparator.comparingInt( Vec3i::getY ) );
 
+        int debug1 = 0;
+        int debug2 = 0;
+
         for( BlockPos blockPos : affectedBlocks )
         {
             BlockState blockState = world.getBlockState( blockPos );
@@ -46,13 +49,13 @@ public class ExplosionHandler
                 if( tileEntity != null )
                     tileEntityNBT = tileEntity.serializeNBT();
 
-                BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
+                BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHeal * i), 0, tileEntityNBT );
                 blocks.add( blockInfo );
                 world.removeTileEntity( blockPos );
                 world.removeBlock( blockPos, false );
                 i++;
             }
-        };
+        }
 
         blocksToHeal.removeAll( blocks );
         blocksToHeal.addAll( blocks );

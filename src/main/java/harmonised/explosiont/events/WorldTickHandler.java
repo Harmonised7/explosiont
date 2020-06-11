@@ -9,6 +9,7 @@ import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.ChunkPos;
@@ -21,24 +22,44 @@ import java.util.*;
 public class WorldTickHandler
 {
     private static final Random rand = new Random();
+    private static final Map<ResourceLocation, Double> dimLastHeal = new HashMap<>();
+    private static final Double ticksPerHeal = Config.config.ticksPerHeal.get();
 //    public static long lastHeal = System.currentTimeMillis();
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
     {
+        ResourceLocation dimResLoc = ( event.world.dimension.getType().getRegistryName() );
+
         World world = event.world;
 
         if( !ChunkDataHandler.toHealDimMap.containsKey( world.dimension.getType().getRegistryName() ) )
             ChunkDataHandler.toHealDimMap.put( world.dimension.getType().getRegistryName(), new ArrayList<>() );
+        List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() );
 
+        blocksToHeal.forEach( blockToHeal ->
+        {
+            blockToHeal.ticksLeft--;
+        });
+
+        if( !dimLastHeal.containsKey( dimResLoc ) )
+            dimLastHeal.put( dimResLoc, 0D );
+
+        dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) + 1 );
+
+        while( dimLastHeal.get( dimResLoc ) > ticksPerHeal )
+        {
+            dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) - ticksPerHeal );
+            processBlock( event );
+        }
+    }
+
+    public static void processBlock( TickEvent.WorldTickEvent event )
+    {
+        World world = event.world;
         List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() );
 
         if( blocksToHeal.size() > 0 )
         {
-            blocksToHeal.forEach( blockToHeal ->
-            {
-                blockToHeal.ticksLeft--;
-            });
-
             int index = 0;
             BlockInfo blockInfo = blocksToHeal.get( index );
             ChunkPos chunkPos = new ChunkPos( blockInfo.pos );
@@ -58,14 +79,20 @@ public class WorldTickHandler
             {
                 Block block = world.getBlockState(blockInfo.pos).getBlock();
                 IFluidState fluidInfo = world.getFluidState(blockInfo.pos);
-                if (block.equals(Blocks.AIR) || fluidInfo.isEmpty())
+                if ( block.equals(Blocks.AIR) || fluidInfo.isEmpty() )
                 {
-//                    System.out.println( blockInfo.pos );
+//                    if( blockInfo.state.getBlock().equals( Blocks.GRASS_BLOCK ) )
+//                    {
+//                        blockInfo.state.get
+//                        System.out.println( "a" );
+//                    }
+
+//                    System.out.println( blockInfo.state.getBlock().getNameTextComponent().getString() );
                     world.setBlockState( blockInfo.pos, blockInfo.state );
                     if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
                         world.setTileEntity(blockInfo.pos, TileEntity.create(blockInfo.tileEntityNBT));
-//                blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
-//                world.getEntitiesWithinAABB()
+//                    blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
+//                    world.getEntitiesWithinAABB()
                 }
                 else
                 {
@@ -86,8 +113,6 @@ public class WorldTickHandler
                 world.playSound(null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
                 blocksToHeal.remove( blockInfo );
             }
-
-//            lastHeal = System.currentTimeMillis();
         }
     }
 }

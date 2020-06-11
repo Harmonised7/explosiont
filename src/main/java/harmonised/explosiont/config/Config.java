@@ -18,9 +18,8 @@ public class Config
     public static class ConfigImplementation
     {
         public ConfigHelper.ConfigValueListener<Integer> healDelayExplosion;
-        public ConfigHelper.ConfigValueListener<Integer> healDelayFire;
-        public ConfigHelper.ConfigValueListener<Double> ticksPerHealExplosion;
-        public ConfigHelper.ConfigValueListener<Double> ticksPerHealFire;
+//        public ConfigHelper.ConfigValueListener<Integer> healDelayFire;
+        public ConfigHelper.ConfigValueListener<Double> ticksPerHeal;
 
         public ConfigImplementation(ForgeConfigSpec.Builder builder, ConfigHelper.Subscriber subscriber)
         {
@@ -29,22 +28,17 @@ public class Config
                 this.healDelayExplosion = subscriber.subscribe(builder
                         .comment( "How many ticks should pass until the healing starts after the explosion? (TICKS)" )
                         .translation( "pmmo.healDelayExplosion" )
-                        .defineInRange( "healDelayExplosion", 50, 0, 100000 ) );
+                        .defineInRange( "healDelayExplosion", 600, 0, 100000 ) );
 
-                this.healDelayFire = subscriber.subscribe(builder
-                        .comment( "How many ticks should pass until the healing starts after the fire? (TICKS)" )
-                        .translation( "pmmo.healDelayFire" )
-                        .defineInRange( "healDelayFire", 50, 0, 100000 ) );
+//                this.healDelayFire = subscriber.subscribe(builder
+//                        .comment( "How many ticks should pass until the healing starts after the fire? (TICKS)" )
+//                        .translation( "pmmo.healDelayFire" )
+//                        .defineInRange( "healDelayFire", 60, 0, 100000 ) );
 
-                this.ticksPerHealExplosion = subscriber.subscribe(builder
-                        .comment( "How many ticks should it take between each explosion heal? (TICKS)" )
-                        .translation( "pmmo.ticksPerHealExplosion" )
-                        .defineInRange( "ticksPerHealExplosion", 10D, 0, 100 ) );
-
-                this.ticksPerHealFire = subscriber.subscribe(builder
-                        .comment( "How many ticks should it take between each fire heal? (TICKS)" )
-                        .translation( "pmmo.ticksPerHealFire" )
-                        .defineInRange( "ticksPerHealFire", 10D, 0, 100 ) );
+                this.ticksPerHeal = subscriber.subscribe(builder
+                        .comment( "How many ticks should it take between each heal? (TICKS)" )
+                        .translation( "pmmo.ticksPerHeal" )
+                        .defineInRange( "ticksPerHeal", 10D, 0, 100 ) );
 
                 builder.pop();
             }

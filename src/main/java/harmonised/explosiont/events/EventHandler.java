@@ -1,6 +1,7 @@
 package harmonised.explosiont.events;
 
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.ChunkDataEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;

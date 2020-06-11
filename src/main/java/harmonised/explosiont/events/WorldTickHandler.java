@@ -59,14 +59,15 @@ public class WorldTickHandler
             else
                 cost = ticksPerHeal;
 
-            System.out.println( blocksToHeal.size() + " " + ticksPerHeal + " " + cost );
+//            System.out.println( blocksToHeal.size() + " " + ticksPerHeal + " " + cost );
 
             dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) - cost );
-            processBlock( event );
+            if( !processBlock( event ) )
+                break;
         }
     }
 
-    public static void processBlock( TickEvent.WorldTickEvent event )
+    public static boolean processBlock( TickEvent.WorldTickEvent event )
     {
         World world = event.world;
         List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() );
@@ -103,6 +104,7 @@ public class WorldTickHandler
                             i++;
                         }
                         a.setPosition( a.getPositionVector().getX(), a.getPositionVector().y + i, a.getPositionVector().z );
+                        world.playSound(null, a.getPositionVector().getX(), a.getPositionVector().getY(), a.getPositionVector().getZ(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.8F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
                     });
 
                     if( blockInfo.state.has( GrassBlock.SNOWY ) )
@@ -131,6 +133,10 @@ public class WorldTickHandler
                 world.playSound(null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
                 blocksToHeal.remove( blockInfo );
             }
+            else
+                return false;
         }
+
+        return true;
     }
 }

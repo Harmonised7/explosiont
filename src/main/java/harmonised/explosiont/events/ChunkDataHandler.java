@@ -31,6 +31,7 @@ public class ChunkDataHandler
                 if( !toHealDimMap.containsKey( dimResLoc ) )
                     toHealDimMap.put( dimResLoc, new ArrayList<>() );
                 List<BlockInfo> blocksToHeal = toHealDimMap.get( dimResLoc );
+                List<BlockInfo> blocksToAdd = new ArrayList<>();
 
                 CompoundNBT blocksToHealNBT = ( (CompoundNBT) levelNBT.get( "blocksToHeal" ) );
                 if( blocksToHealNBT == null )
@@ -40,8 +41,13 @@ public class ChunkDataHandler
                 keySet.forEach( key ->
                 {
                     CompoundNBT entry = blocksToHealNBT.getCompound( key );
-                    blocksToHeal.add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getLong( "time" ), entry.getCompound( "tileEntity" ) ) );
+                    blocksToAdd.add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), 0, entry.getCompound( "tileEntity" ) ) );
                 });
+
+                blocksToHeal.removeAll( blocksToAdd );
+                blocksToHeal.addAll( blocksToAdd );
+
+                blocksToHeal.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
             }
         }
     }
@@ -79,6 +85,7 @@ public class ChunkDataHandler
                 insidesNBT = new CompoundNBT();
                 insidesNBT.put( "pos", NBTUtil.writeBlockPos( blockInfo.pos ) );
                 insidesNBT.put( "state", NBTUtil.writeBlockState( blockInfo.state ) );
+                insidesNBT.putInt( "ticksLeft", blockInfo.ticksLeft );
                 if( blockInfo.tileEntityNBT != null )
                     insidesNBT.put( "tileEntity", blockInfo.tileEntityNBT );
                 newBlocksToHealNBT.put( i++ + "", insidesNBT );

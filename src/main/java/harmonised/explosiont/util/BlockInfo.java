@@ -15,14 +15,16 @@ public class BlockInfo
     public BlockState state;
     public BlockPos pos;
     public CompoundNBT tileEntityNBT;
-    public long time;
+    public int ticksLeft;
+    public int type;
 
-    public BlockInfo( ResourceLocation dimResLoc, BlockState state, BlockPos blockPos, long time, @Nullable CompoundNBT tileEntityNBT )
+    public BlockInfo( ResourceLocation dimResLoc, BlockState state, BlockPos blockPos, int ticksLeft, int type, @Nullable CompoundNBT tileEntityNBT )
     {
         this.dimResLoc = dimResLoc;
         this.state = state;
         this.pos = blockPos;
-        this.time = time;
+        this.ticksLeft = ticksLeft;
+        this.type = type;
         this.tileEntityNBT = tileEntityNBT;
     }
 }

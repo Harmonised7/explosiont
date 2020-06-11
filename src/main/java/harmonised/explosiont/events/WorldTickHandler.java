@@ -20,76 +20,74 @@ import java.util.*;
 
 public class WorldTickHandler
 {
-    private static double healDelay = Config.config.healDelay.get();
-    private static double eachHealDelay = Config.config.eachHealDelay.get();
     private static final Random rand = new Random();
-    public static long lastHeal = System.currentTimeMillis();
+//    public static long lastHeal = System.currentTimeMillis();
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
     {
-        if( System.currentTimeMillis() - lastHeal > eachHealDelay )
+        World world = event.world;
+
+        if( !ChunkDataHandler.toHealDimMap.containsKey( world.dimension.getType().getRegistryName() ) )
+            ChunkDataHandler.toHealDimMap.put( world.dimension.getType().getRegistryName(), new ArrayList<>() );
+
+        List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() );
+
+        if( blocksToHeal.size() > 0 )
         {
-            World world = event.world;
-            healDelay = 1000;
-
-            if( !ChunkDataHandler.toHealDimMap.containsKey( world.dimension.getType().getRegistryName() ) )
-                ChunkDataHandler.toHealDimMap.put( world.dimension.getType().getRegistryName(), new ArrayList<>() );
-
-            List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() );
-
-            if( blocksToHeal.size() > 0 )
+            blocksToHeal.forEach( blockToHeal ->
             {
-                int index = 0;
-                BlockInfo blockInfo = blocksToHeal.get( index );
-                ChunkPos chunkPos = new ChunkPos( blockInfo.pos );
+                blockToHeal.ticksLeft--;
+            });
 
-                while( !world.chunkExists( chunkPos.x, chunkPos.z ) )
+            int index = 0;
+            BlockInfo blockInfo = blocksToHeal.get( index );
+            ChunkPos chunkPos = new ChunkPos( blockInfo.pos );
+
+            while( !world.chunkExists( chunkPos.x, chunkPos.z ) || blockInfo.ticksLeft > 0 )
+            {
+                if( blocksToHeal.size() > ++index )
                 {
-                    if( blocksToHeal.size() > ++index )
-                    {
-                        blockInfo = blocksToHeal.get( index );
-                        chunkPos = new ChunkPos( blockInfo.pos );
-                    }
+                    blockInfo = blocksToHeal.get( index );
+                    chunkPos = new ChunkPos( blockInfo.pos );
                 }
+                else
+                    break;
+            }
 
-                if( !world.chunkExists( chunkPos.x, chunkPos.z ) )
-                    return;
-
-                if( System.currentTimeMillis() - healDelay > blockInfo.time )
+            if( world.chunkExists( chunkPos.x, chunkPos.z ) && blockInfo.ticksLeft <= 0 )
+            {
+                Block block = world.getBlockState(blockInfo.pos).getBlock();
+                IFluidState fluidInfo = world.getFluidState(blockInfo.pos);
+                if (block.equals(Blocks.AIR) || fluidInfo.isEmpty())
                 {
-                    Block block = world.getBlockState( blockInfo.pos ).getBlock();
-
-                    IFluidState fluidInfo = world.getFluidState( blockInfo.pos );
-
-                    if( block.equals( Blocks.AIR ) || fluidInfo.isEmpty() )
+//                    System.out.println( blockInfo.pos );
+                    world.setBlockState( blockInfo.pos, blockInfo.state );
+                    if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
+                        world.setTileEntity(blockInfo.pos, TileEntity.create(blockInfo.tileEntityNBT));
+//                blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
+//                world.getEntitiesWithinAABB()
+                }
+                else
+                {
+                    Block.spawnAsEntity(world, blockInfo.pos, new ItemStack(blockInfo.state.getBlock().asItem()));
+                    if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.contains("Items"))
                     {
-                        world.setBlockState( blockInfo.pos, blockInfo.state );
-                        if( blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0 )
-                            world.setTileEntity( blockInfo.pos, TileEntity.create( blockInfo.tileEntityNBT ) );
-//                        blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
-                    }
-                    else
-                    {
-                        Block.spawnAsEntity( world, blockInfo.pos, new ItemStack( blockInfo.state.getBlock().asItem() ) );
-                        if( blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.contains( "Items" ) )
+                        ListNBT items = (ListNBT) blockInfo.tileEntityNBT.get("Items");
+                        if (items != null)
                         {
-                            ListNBT items = (ListNBT) blockInfo.tileEntityNBT.get( "Items" );
-                            if( items != null )
+                            for (int i = 0; i < items.size(); i++)
                             {
-                                for( int i = 0; i < items.size(); i++ )
-                                {
-                                    Block.spawnAsEntity( world, blockInfo.pos, ItemStack.read( items.getCompound( i ) ) );
-                                }
+                                Block.spawnAsEntity(world, blockInfo.pos, ItemStack.read(items.getCompound(i)));
                             }
                         }
                     }
-
-                    world.playSound( null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F );
-                    blocksToHeal.remove( 0 );
                 }
+
+                world.playSound(null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
+                blocksToHeal.remove( blockInfo );
             }
 
-            lastHeal = System.currentTimeMillis();
+//            lastHeal = System.currentTimeMillis();
         }
     }
 }

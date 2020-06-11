@@ -1,32 +1,25 @@
 package harmonised.explosiont.events;
 
+import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
-import harmonised.explosiont.util.ExplosionInfo;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.monster.SkeletonEntity;
-import net.minecraft.entity.passive.CowEntity;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ChestTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.Explosion;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.loot.LootContext;
-import net.minecraft.world.storage.loot.LootParameters;
-import net.minecraft.world.storage.loot.LootTable;
 import net.minecraftforge.event.world.ExplosionEvent;
 
 import java.util.*;
 
 public class ExplosionHandler
 {
+    private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
+    private static final double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
+
     public static void handleExplosion( ExplosionEvent.Detonate event )
     {
         List<BlockInfo> blocks = new ArrayList<>();
@@ -37,9 +30,11 @@ public class ExplosionHandler
             ChunkDataHandler.toHealDimMap.put( dimResLoc, new ArrayList<>() );
 
         List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc );
-        Map<String, Integer> test = new HashMap<>();
+        int i = 0;
+        List<BlockPos> affectedBlocks = event.getExplosion().getAffectedBlockPositions();
+        affectedBlocks.sort( Comparator.comparingInt( Vec3i::getY ) );
 
-        event.getExplosion().getAffectedBlockPositions().forEach( blockPos ->
+        for( BlockPos blockPos : affectedBlocks )
         {
             BlockState blockState = world.getBlockState( blockPos );
             Block block = world.getBlockState( blockPos ).getBlock();
@@ -51,18 +46,13 @@ public class ExplosionHandler
                 if( tileEntity != null )
                     tileEntityNBT = tileEntity.serializeNBT();
 
-                BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, System.currentTimeMillis(), tileEntityNBT );
+                BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
                 blocks.add( blockInfo );
                 world.removeTileEntity( blockPos );
                 world.removeBlock( blockPos, false );
-
-                String testString = block.getRegistryName().toString();
-                if( !test.containsKey( testString ) )
-                    test.put( testString, 1 );
-                else
-                    test.replace( testString, test.get( testString ) + 1 );
+                i++;
             }
-        });
+        };
 
         blocksToHeal.removeAll( blocks );
         blocksToHeal.addAll( blocks );

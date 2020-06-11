@@ -47,8 +47,6 @@ public class ExplosionHandler
 
             if( !block.equals( Blocks.AIR ) && !block.equals( Blocks.CAVE_AIR ) && !block.equals( Blocks.FIRE ) && ( world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) ) )
             {
-                if( block.equals( Blocks.SNOW ) )
-                    System.out.println( "snow" );
                 TileEntity tileEntity = world.getTileEntity( blockPos );
                 CompoundNBT tileEntityNBT = null;
                 if( tileEntity != null )

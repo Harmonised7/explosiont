@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.GrassBlock;
+import net.minecraft.entity.Entity;
 import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.ListNBT;
@@ -13,7 +14,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
@@ -46,10 +50,18 @@ public class WorldTickHandler
             dimLastHeal.put( dimResLoc, 0D );
 
         dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) + 1 );
+        double cost = ticksPerHeal;
 
-        while( dimLastHeal.get( dimResLoc ) > ticksPerHeal )
+        while( dimLastHeal.get( dimResLoc ) > cost )
         {
-            dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) - ticksPerHeal );
+            if( blocksToHeal.size() > 1000 )
+                cost = ticksPerHeal * ( 1000 / (double) (blocksToHeal.size() ) );
+            else
+                cost = ticksPerHeal;
+
+            System.out.println( blocksToHeal.size() + " " + ticksPerHeal + " " + cost );
+
+            dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) - cost );
             processBlock( event );
         }
     }
@@ -82,15 +94,23 @@ public class WorldTickHandler
                 IFluidState fluidInfo = world.getFluidState(blockInfo.pos);
                 if ( block.equals(Blocks.AIR) || fluidInfo.isEmpty() || !fluidInfo.isSource() )
                 {
+                    world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( blockInfo.pos.down().west().south(), blockInfo.pos.up().east().north() ) ).forEach( a ->
+                    {
+                        BlockPos entityPos = a.getPosition();
+                        int i = 1;
+                        while( world.getBlockState( entityPos.up( i ) ).isSolid() && world.getBlockState( entityPos.up( i + 1 ) ).isSolid() )
+                        {
+                            i++;
+                        }
+                        a.setPosition( a.getPositionVector().getX(), a.getPositionVector().y + i, a.getPositionVector().z );
+                    });
+
                     if( blockInfo.state.has( GrassBlock.SNOWY ) )
                         blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-
-//                    System.out.println( blockInfo.state.getBlock().getNameTextComponent().getString() );
                     world.setBlockState( blockInfo.pos, blockInfo.state );
                     if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
                         world.setTileEntity(blockInfo.pos, TileEntity.create(blockInfo.tileEntityNBT));
 //                    blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
-//                    world.getEntitiesWithinAABB()
                 }
                 else
                 {

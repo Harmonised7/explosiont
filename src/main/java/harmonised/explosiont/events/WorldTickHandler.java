@@ -5,6 +5,7 @@ import harmonised.explosiont.util.BlockInfo;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.GrassBlock;
 import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.ListNBT;
@@ -79,13 +80,10 @@ public class WorldTickHandler
             {
                 Block block = world.getBlockState(blockInfo.pos).getBlock();
                 IFluidState fluidInfo = world.getFluidState(blockInfo.pos);
-                if ( block.equals(Blocks.AIR) || fluidInfo.isEmpty() )
+                if ( block.equals(Blocks.AIR) || fluidInfo.isEmpty() || !fluidInfo.isSource() )
                 {
-//                    if( blockInfo.state.getBlock().equals( Blocks.GRASS_BLOCK ) )
-//                    {
-//                        blockInfo.state.get
-//                        System.out.println( "a" );
-//                    }
+                    if( blockInfo.state.has( GrassBlock.SNOWY ) )
+                        blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
 
 //                    System.out.println( blockInfo.state.getBlock().getNameTextComponent().getString() );
                     world.setBlockState( blockInfo.pos, blockInfo.state );

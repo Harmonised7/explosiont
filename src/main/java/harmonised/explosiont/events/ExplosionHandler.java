@@ -31,19 +31,24 @@ public class ExplosionHandler
 
         List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc );
         int i = 0;
-        List<BlockPos> affectedBlocks = event.getExplosion().getAffectedBlockPositions();
+        List<BlockPos> affectedBlocks = event.getAffectedBlocks();
         affectedBlocks.sort( Comparator.comparingInt( Vec3i::getY ) );
 
-        int debug1 = 0;
-        int debug2 = 0;
+//        for( BlockPos pos : affectedBlocks )
+//        {
+//            if( world.getBlockState( pos ).getBlock().equals( Blocks.SNOW ) )
+//                System.out.println( "snow" );
+//        }
 
         for( BlockPos blockPos : affectedBlocks )
         {
             BlockState blockState = world.getBlockState( blockPos );
-            Block block = world.getBlockState( blockPos ).getBlock();
+            Block block = blockState.getBlock();
 
             if( !block.equals( Blocks.AIR ) && !block.equals( Blocks.CAVE_AIR ) && !block.equals( Blocks.FIRE ) && ( world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) ) )
             {
+                if( block.equals( Blocks.SNOW ) )
+                    System.out.println( "snow" );
                 TileEntity tileEntity = world.getTileEntity( blockPos );
                 CompoundNBT tileEntityNBT = null;
                 if( tileEntity != null )
@@ -51,11 +56,16 @@ public class ExplosionHandler
 
                 BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHeal * i), 0, tileEntityNBT );
                 blocks.add( blockInfo );
-                world.removeTileEntity( blockPos );
-                world.removeBlock( blockPos, false );
                 i++;
             }
         }
+
+        blocks.forEach( info ->
+        {
+            world.removeTileEntity( info.pos );
+            world.removeBlock( info.pos, false );
+        });
+
 
         blocksToHeal.removeAll( blocks );
         blocksToHeal.addAll( blocks );

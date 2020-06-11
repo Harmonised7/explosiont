@@ -20,6 +20,7 @@ public class Config
         public ConfigHelper.ConfigValueListener<Integer> healDelayExplosion;
 //        public ConfigHelper.ConfigValueListener<Integer> healDelayFire;
         public ConfigHelper.ConfigValueListener<Double> ticksPerHeal;
+        public ConfigHelper.ConfigValueListener<Integer> speedUpTreshold;
 
         public ConfigImplementation(ForgeConfigSpec.Builder builder, ConfigHelper.Subscriber subscriber)
         {
@@ -39,6 +40,11 @@ public class Config
                         .comment( "How many ticks should it take between each heal? (TICKS)" )
                         .translation( "pmmo.ticksPerHeal" )
                         .defineInRange( "ticksPerHeal", 10D, 0, 100 ) );
+
+                this.speedUpTreshold = subscriber.subscribe(builder
+                        .comment( "Past what number of blocks should rebuild speed start scaling? (If this is set to 1000, past 1000, the speed will double every 1000 blocks, so at 2000 = 200% speed, 5000 = 500% speed)" )
+                        .translation( "pmmo.speedUpTreshold" )
+                        .defineInRange( "speedUpTreshold", 1000, 0, 100000 ) );
 
                 builder.pop();
             }

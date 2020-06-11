@@ -29,8 +29,8 @@ public class WorldTickHandler
     private static final Random rand = new Random();
     private static final Map<ResourceLocation, Double> dimLastHeal = new HashMap<>();
     private static final Set<ResourceLocation> dimForceHeal = new HashSet<>();
-
     private static final Double ticksPerHeal = Config.config.ticksPerHeal.get();
+    private static final Integer speedUpTreshold = Config.config.speedUpTreshold.get();
 //    public static long lastHeal = System.currentTimeMillis();
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
@@ -56,8 +56,8 @@ public class WorldTickHandler
 
         while( forceHeal || dimLastHeal.get( dimResLoc ) > cost )
         {
-            if( blocksToHeal.size() > 1000 )
-                cost = ticksPerHeal * ( 1000 / (double) (blocksToHeal.size() ) );
+            if( blocksToHeal.size() > speedUpTreshold )
+                cost = ticksPerHeal * ( speedUpTreshold / (double) (blocksToHeal.size() ) );
             else
                 cost = ticksPerHeal;
 

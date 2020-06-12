@@ -101,8 +101,17 @@ public class WorldTickHandler
                 BlockPos pos = blockInfo.pos;
                 Block block = world.getBlockState(pos).getBlock();
                 IFluidState fluidInfo = world.getFluidState(pos);
-                if ( block.equals(Blocks.AIR) || fluidInfo.isEmpty() || !fluidInfo.isSource() )
+
+                if ( block.equals( Blocks.AIR ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
                 {
+                    System.out.println( fluidInfo );
+
+                    System.out.println( block.equals( Blocks.AIR ) );
+                    System.out.println( fluidInfo.isEmpty() );
+                    System.out.println( fluidInfo.isSource() );
+
+                    System.out.println( world.getBlockState( pos ) );
+
                     if( blockInfo.state.has( GrassBlock.SNOWY ) )
                         blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
                     world.setBlockState( pos, blockInfo.state );

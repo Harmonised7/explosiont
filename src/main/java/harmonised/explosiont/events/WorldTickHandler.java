@@ -3,7 +3,6 @@ package harmonised.explosiont.events;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.GrassBlock;
 import net.minecraft.entity.Entity;
@@ -17,9 +16,7 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 
 import java.util.*;

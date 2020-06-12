@@ -3,7 +3,6 @@ package harmonised.explosiont;
 import harmonised.explosiont.commands.ExplosiontCommand;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.events.ChunkDataHandler;
-import harmonised.explosiont.events.WorldTickHandler;
 import harmonised.explosiont.util.Reference;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;

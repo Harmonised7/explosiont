@@ -3,9 +3,6 @@ package harmonised.explosiont.config;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.config.ModConfig;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class Config
 {
     public static ConfigImplementation config;

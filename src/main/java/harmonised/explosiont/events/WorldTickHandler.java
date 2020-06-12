@@ -56,7 +56,7 @@ public class WorldTickHandler
 
         while( forceHeal || dimLastHeal.get( dimResLoc ) > cost )
         {
-            if( blocksToHeal.size() > speedUpTreshold )
+            if( blocksToHeal.size() > speedUpTreshold && speedUpTreshold > 0 )
                 cost = ticksPerHeal * ( speedUpTreshold / (double) (blocksToHeal.size() ) );
             else
                 cost = ticksPerHeal;

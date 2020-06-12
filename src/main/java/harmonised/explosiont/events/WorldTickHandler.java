@@ -62,8 +62,8 @@ public class WorldTickHandler
                 cost = ticksPerHeal;
 
 //            System.out.println( blocksToHeal.size() + " " + ticksPerHeal + " " + cost );
+            dimLastHeal.replace( dimResLoc, Math.max( 0, dimLastHeal.get( dimResLoc ) - cost ) );
 
-            dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) - cost );
             if( !processBlock( event, forceHeal ) )
             {
                 dimForceHeal.remove( dimResLoc );
@@ -101,32 +101,33 @@ public class WorldTickHandler
 
             if( chunkExists && blockInfo.ticksLeft <= 0 )
             {
-                Block block = world.getBlockState(blockInfo.pos).getBlock();
-                IFluidState fluidInfo = world.getFluidState(blockInfo.pos);
+                BlockPos pos = blockInfo.pos;
+                Block block = world.getBlockState(pos).getBlock();
+                IFluidState fluidInfo = world.getFluidState(pos);
                 if ( block.equals(Blocks.AIR) || fluidInfo.isEmpty() || !fluidInfo.isSource() )
                 {
-                    world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( blockInfo.pos.down().west().south(), blockInfo.pos.up().east().north() ) ).forEach( a ->
+                    if( blockInfo.state.has( GrassBlock.SNOWY ) )
+                        blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
+                    world.setBlockState( pos, blockInfo.state );
+                    if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
+                        world.setTileEntity(pos, TileEntity.create(blockInfo.tileEntityNBT));
+//                    blockInfo.state.updateNeighbors( world, pos, 0 );
+
+                    world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
                     {
                         BlockPos entityPos = a.getPosition();
                         int i = 1;
-                        while( world.getBlockState( entityPos.up( i ) ).isSolid() && world.getBlockState( entityPos.up( i + 1 ) ).isSolid() )
+                        while( world.getBlockState( entityPos.up( i ) ).isSolid() || world.getBlockState( entityPos.up( i + 1 ) ).isSolid() )
                         {
                             i++;
                         }
                         a.setPosition( a.getPositionVector().getX(), a.getPositionVector().y + i, a.getPositionVector().z );
                         world.playSound(null, a.getPositionVector().getX(), a.getPositionVector().getY(), a.getPositionVector().getZ(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.8F + rand.nextFloat() * 0.4F, 0.9F + rand.nextFloat() * 0.15F);
                     });
-
-                    if( blockInfo.state.has( GrassBlock.SNOWY ) )
-                        blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-                    world.setBlockState( blockInfo.pos, blockInfo.state );
-                    if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
-                        world.setTileEntity(blockInfo.pos, TileEntity.create(blockInfo.tileEntityNBT));
-//                    blockInfo.state.updateNeighbors( world, blockInfo.pos, 0 );
                 }
                 else
                 {
-                    Block.spawnAsEntity(world, blockInfo.pos, new ItemStack(blockInfo.state.getBlock().asItem()));
+                    Block.spawnAsEntity(world, pos, new ItemStack(blockInfo.state.getBlock().asItem()));
                     if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.contains("Items"))
                     {
                         ListNBT items = (ListNBT) blockInfo.tileEntityNBT.get("Items");
@@ -134,13 +135,13 @@ public class WorldTickHandler
                         {
                             for (int i = 0; i < items.size(); i++)
                             {
-                                Block.spawnAsEntity(world, blockInfo.pos, ItemStack.read(items.getCompound(i)));
+                                Block.spawnAsEntity(world, pos, ItemStack.read(items.getCompound(i)));
                             }
                         }
                     }
                 }
 
-                world.playSound(null, blockInfo.pos.getX(), blockInfo.pos.getY(), blockInfo.pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
                 blocksToHeal.remove( blockInfo );
             }
             else

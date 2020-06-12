@@ -63,8 +63,7 @@ public class ExplosionHandler
             world.removeTileEntity( info.pos );
             world.removeBlock( info.pos, false );
         });
-
-
+        
         blocksToHeal.removeAll( blocks );
         blocksToHeal.addAll( blocks );
         blocksToHeal.sort( Comparator.comparingInt( info -> info.pos.getY() ) );

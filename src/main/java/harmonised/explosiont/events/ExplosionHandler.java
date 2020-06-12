@@ -1,5 +1,6 @@
 package harmonised.explosiont.events;
 
+import net.minecraftforge.common.util.Constants;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
 import net.minecraft.block.Block;
@@ -32,7 +33,7 @@ public class ExplosionHandler
         List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc );
         int i = 0;
         List<BlockPos> affectedBlocks = event.getAffectedBlocks();
-        affectedBlocks.sort( Comparator.comparingInt( Vec3i::getY ) );
+        affectedBlocks.sort( Comparator.comparingInt( BlockPos::getY ) );
 
 //        for( BlockPos pos : affectedBlocks )
 //        {
@@ -45,7 +46,7 @@ public class ExplosionHandler
             BlockState blockState = world.getBlockState( blockPos );
             Block block = blockState.getBlock();
 
-            if( !block.equals( Blocks.AIR ) && !block.equals( Blocks.CAVE_AIR ) && !block.equals( Blocks.FIRE ) && ( world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) ) )
+            if( !block.equals( Blocks.AIR ) && !block.equals( Blocks.CAVE_AIR ) && !block.equals( Blocks.VOID_AIR ) && !block.equals( Blocks.FIRE ) && ( world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) ) )
             {
                 TileEntity tileEntity = world.getTileEntity( blockPos );
                 CompoundNBT tileEntityNBT = null;
@@ -60,9 +61,21 @@ public class ExplosionHandler
 
         blocks.forEach( info ->
         {
-            world.removeTileEntity( info.pos );
-            world.removeBlock( info.pos, false );
+            if( !info.state.isSolid() )
+            {
+                world.removeTileEntity( info.pos );
+                world.setBlockState( info.pos, Blocks.AIR.getDefaultState(), Constants.BlockFlags.IS_MOVING );
+            }
         });
+
+//        blocks.sort( Comparator.comparingInt( a -> ( (BlockInfo) a ).pos.getY() ).reversed() );
+        blocks.forEach( info ->
+        {
+            world.removeTileEntity( info.pos );
+            world.setBlockState( info.pos, Blocks.AIR.getDefaultState(), Constants.BlockFlags.IS_MOVING );
+        });
+//        blocks.sort( Comparator.comparingInt( a -> a.pos.getY() ) );
+
         
         blocksToHeal.removeAll( blocks );
         blocksToHeal.addAll( blocks );

@@ -80,7 +80,7 @@ public class WorldTickHandler
 
                     if( chunkExists )
                     {
-                        if( ( ( blockInfo.ticksLeft < 0 && index < 1000 ) || blockInfo.ticksLeft < -6000 ) || forceHeal )
+                        if( blockInfo.ticksLeft < 0 || forceHeal )
                         {
                             toHeal--;
                             processBlock( world, blockInfo );

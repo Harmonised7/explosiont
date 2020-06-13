@@ -18,7 +18,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: "com.wynprice.cursemaven"
 
-version = '1.15-1.4.5'
+version = '1.15-1.5'
 group = 'harmonised.explosiont'
 archivesBaseName = 'explosiont'
 
@@ -110,6 +110,7 @@ dependencies
     runtimeOnly fg.deobf("curse.maven:ores-and-metals:2967502")
     runtimeOnly fg.deobf("curse.maven:curio-of-undying:2880784")
     runtimeOnly fg.deobf("curse.maven:worldedit:2873556")
+//    runtimeOnly fg.deobf("curse.maven:worldeditcui-forge-edition-3:2976520")
 //    runtimeOnly fg.deobf("curse.maven:atmospheric:2957921")
 
     runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-1.15.2-2.0.2.2")

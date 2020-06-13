@@ -28,7 +28,6 @@ public class WorldTickHandler
     private static final Set<ResourceLocation> dimForceHeal = new HashSet<>();
     private static final Double ticksPerHeal = Config.config.ticksPerHeal.get();
     private static final Integer speedUpTreshold = Config.config.speedUpTreshold.get();
-//    public static long lastHeal = System.currentTimeMillis();
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
     {
@@ -48,107 +47,102 @@ public class WorldTickHandler
         if( !dimLastHeal.containsKey( dimResLoc ) )
             dimLastHeal.put( dimResLoc, 0D );
 
-        dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) + 1 );
-        double cost = ticksPerHeal;
-
-        while( forceHeal || dimLastHeal.get( dimResLoc ) > cost )
-        {
-            if( blocksToHeal.size() > speedUpTreshold && speedUpTreshold > 0 )
-                cost = ticksPerHeal * ( speedUpTreshold / (double) (blocksToHeal.size() ) );
-            else
-                cost = ticksPerHeal;
-
-//            System.out.println( blocksToHeal.size() + " " + ticksPerHeal + " " + cost );
-            dimLastHeal.replace( dimResLoc, Math.max( 0, dimLastHeal.get( dimResLoc ) - cost ) );
-
-            if( !processBlock( event, forceHeal ) )
-            {
-                dimForceHeal.remove( dimResLoc );
-                break;
-            }
-        }
-    }
-
-    public static boolean processBlock( TickEvent.WorldTickEvent event, boolean forceHeal )
-    {
-        World world = event.world;
-        List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() );
-
         if( blocksToHeal.size() > 0 )
         {
-            int index = 0;
-            BlockInfo blockInfo = blocksToHeal.get( index );
-            ChunkPos chunkPos = new ChunkPos( blockInfo.pos );
-            boolean chunkExists = checkChunkExists( world, chunkPos, forceHeal );
+            dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) + 1 );     //add tick
+            double cost;
 
-            if( forceHeal )
-                blockInfo.ticksLeft = 0;
+            int toHeal = 0;
 
-            while( !chunkExists || blockInfo.ticksLeft > 0 )
+            if( !forceHeal )
+            {
+                if( blocksToHeal.size() > speedUpTreshold && speedUpTreshold > 0 )      //get cost, scale if needed
+                    cost = ticksPerHeal * ( speedUpTreshold / (double) (blocksToHeal.size() ) );
+                else
+                    cost = ticksPerHeal;
+
+                toHeal = (int) ( dimLastHeal.get( dimResLoc ) / cost );
+                dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) % cost );  //take away cost for each block
+            }
+
+            int index = -1;
+            BlockInfo blockInfo;
+            ChunkPos chunkPos;
+            boolean chunkExists;
+
+            while( toHeal > 0 || forceHeal )
             {
                 if( blocksToHeal.size() > ++index )
                 {
                     blockInfo = blocksToHeal.get( index );
                     chunkPos = new ChunkPos( blockInfo.pos );
                     chunkExists = checkChunkExists( world, chunkPos, forceHeal );
+
+                    if( chunkExists )
+                    {
+                        if( ( ( blockInfo.ticksLeft < 0 && index < 1000 ) || blockInfo.ticksLeft < -6000 ) || forceHeal )
+                        {
+                            toHeal--;
+                            processBlock( world, blockInfo );
+                            blocksToHeal.remove( blockInfo );
+                        }
+                    }
                 }
                 else
                     break;
             }
-
-            if( chunkExists && blockInfo.ticksLeft <= 0 )
-            {
-                BlockPos pos = blockInfo.pos;
-                Block block = world.getBlockState(pos).getBlock();
-                IFluidState fluidInfo = world.getFluidState(pos);
-
-                if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
-                {
-                    if( blockInfo.state.has( GrassBlock.SNOWY ) )
-                        blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-                    world.setBlockState( pos, blockInfo.state );
-                    if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
-                        world.setTileEntity(pos, TileEntity.create(blockInfo.tileEntityNBT));
-//                    blockInfo.state.updateNeighbors( world, pos, 0 );
-
-                    world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
-                    {
-                        BlockPos entityPos = a.getPosition();
-                        int i = 1;
-                        while( world.getBlockState( entityPos.up( i ) ).isSolid() || world.getBlockState( entityPos.up( i + 1 ) ).isSolid() )
-                        {
-                            i++;
-                        }
-                        a.setPosition( a.getPositionVector().getX(), a.getPositionVector().y + i, a.getPositionVector().z );
-                        world.playSound(null, a.getPositionVector().getX(), a.getPositionVector().getY(), a.getPositionVector().getZ(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.8F + rand.nextFloat() * 0.4F, 0.9F + rand.nextFloat() * 0.15F);
-                    });
-                }
-                else
-                {
-                    Block.spawnAsEntity(world, pos, new ItemStack(blockInfo.state.getBlock().asItem()));
-                    if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.contains("Items"))
-                    {
-                        ListNBT items = (ListNBT) blockInfo.tileEntityNBT.get("Items");
-                        if (items != null)
-                        {
-                            for (int i = 0; i < items.size(); i++)
-                            {
-                                Block.spawnAsEntity(world, pos, ItemStack.read(items.getCompound(i)));
-                            }
-                        }
-                    }
-                }
-
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
-                blocksToHeal.remove( blockInfo );
-            }
-            else
-                return false;
         }
         else
-            return false;
+        {
+            dimLastHeal.replace( dimResLoc, 0D );
+            dimForceHeal.remove( dimResLoc );
+        }
+    }
 
-        return true;
+    private static void processBlock( World world, BlockInfo blockInfo )
+    {
+        BlockPos pos = blockInfo.pos;
+        Block block = world.getBlockState(pos).getBlock();
+        IFluidState fluidInfo = world.getFluidState(pos);
+
+        if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
+        {
+            if( blockInfo.state.has( GrassBlock.SNOWY ) )
+                blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
+            world.setBlockState( pos, blockInfo.state );
+            if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
+                world.setTileEntity(pos, TileEntity.create(blockInfo.tileEntityNBT));
+//                    blockInfo.state.updateNeighbors( world, pos, 0 );
+
+            world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
+            {
+                BlockPos entityPos = a.getPosition();
+                int i = 1;
+                while( world.getBlockState( entityPos.up( i ) ).isSolid() || world.getBlockState( entityPos.up( i + 1 ) ).isSolid() )
+                {
+                    i++;
+                }
+                a.setPosition( a.getPositionVector().getX(), a.getPositionVector().y + i, a.getPositionVector().z );
+                world.playSound(null, a.getPositionVector().getX(), a.getPositionVector().getY(), a.getPositionVector().getZ(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.8F + rand.nextFloat() * 0.4F, 0.9F + rand.nextFloat() * 0.15F);
+            });
+        }
+        else
+        {
+            Block.spawnAsEntity(world, pos, new ItemStack(blockInfo.state.getBlock().asItem()));
+            if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.contains("Items"))
+            {
+                ListNBT items = (ListNBT) blockInfo.tileEntityNBT.get("Items");
+                if (items != null)
+                {
+                    for (int i = 0; i < items.size(); i++)
+                    {
+                        Block.spawnAsEntity(world, pos, ItemStack.read(items.getCompound(i)));
+                    }
+                }
+            }
+        }
+
+        world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
     }
 
     private static boolean checkChunkExists( World world, ChunkPos chunkPos, boolean forceHeal )

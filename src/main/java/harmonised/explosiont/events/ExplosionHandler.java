@@ -81,6 +81,13 @@ public class ExplosionHandler
         blocksToHeal.addAll( blocks );
         blocksToHeal.sort( Comparator.comparingInt( info -> info.pos.getY() ) );
 
+//        int j = 0;
+//
+//        blocksToHeal.forEach( a ->
+//        {
+//            if( )
+//        });
+
 //        WorldTickHandler.explosions.add( WorldTickHandler.explosions.size(), new ExplosionInfo( blocks, 0 ) );
 //        System.out.println( event.getExplosion() );
 

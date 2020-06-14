@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "harmonised.explosiont.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "explosiont.refmap.json",
+  "mixins": [
+  ],
+  "client":[
+    "FireMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

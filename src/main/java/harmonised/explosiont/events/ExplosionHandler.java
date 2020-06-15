@@ -28,9 +28,11 @@ public class ExplosionHandler
         ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
 
         if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
-            ChunkDataHandler.toHealDimMap.put( dimResLoc, new ArrayList<>() );
+            ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
+        if( !ChunkDataHandler.toHealDimMap.get( dimResLoc ).containsKey( 0 ) )
+            ChunkDataHandler.toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
 
-        List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc );
+        List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc ).get( 0 );
         int i = 0;
         List<BlockPos> affectedBlocks = event.getAffectedBlocks();
         affectedBlocks.sort( Comparator.comparingInt( BlockPos::getY ) );

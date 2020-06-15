@@ -11,7 +11,7 @@ import java.util.*;
 
 public class ChunkDataHandler
 {
-    public static Map<ResourceLocation, List<BlockInfo>> toHealDimMap = new HashMap<>();
+    public static Map<ResourceLocation, Map<Integer, List<BlockInfo>>> toHealDimMap = new HashMap<>();
 
     public static void init()
     {
@@ -27,9 +27,15 @@ public class ChunkDataHandler
             {
                 ResourceLocation dimResLoc = event.getWorld().getDimension().getType().getRegistryName();
                 if( !toHealDimMap.containsKey( dimResLoc ) )
-                    toHealDimMap.put( dimResLoc, new ArrayList<>() );
-                List<BlockInfo> blocksToHeal = toHealDimMap.get( dimResLoc );
-                List<BlockInfo> blocksToAdd = new ArrayList<>();
+                {
+                    toHealDimMap.put( dimResLoc, new HashMap<>() );
+                    toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
+                    toHealDimMap.get( dimResLoc ).put( 1, new ArrayList<>() );
+                }
+                List<BlockInfo> blocksToHealExplosion = toHealDimMap.get( dimResLoc ).get( 0 );
+                List<BlockInfo> blocksToHealFire = toHealDimMap.get( dimResLoc ).get( 1 );
+                List<BlockInfo> blocksToAddExplosion = new ArrayList<>();
+                List<BlockInfo> blocksToAddFire = new ArrayList<>();
 
                 CompoundNBT blocksToHealNBT = ( (CompoundNBT) levelNBT.get( "blocksToHeal" ) );
                 if( blocksToHealNBT == null )
@@ -39,13 +45,19 @@ public class ChunkDataHandler
                 keySet.forEach( key ->
                 {
                     CompoundNBT entry = blocksToHealNBT.getCompound( key );
-                    blocksToAdd.add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "tileEntity" ) ) );
+                    if( entry.getInt( "type" ) == 0 )
+                        blocksToAddExplosion.add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "tileEntity" ) ) );
+                    else
+                        blocksToAddExplosion.add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "tileEntity" ) ) );
                 });
 
-                blocksToHeal.removeAll( blocksToAdd );
-                blocksToHeal.addAll( blocksToAdd );
+                blocksToHealExplosion.removeAll( blocksToAddExplosion );
+                blocksToHealExplosion.addAll( blocksToAddExplosion );
+                blocksToHealExplosion.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
 
-                blocksToHeal.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
+                blocksToHealFire.removeAll( blocksToAddFire );
+                blocksToHealFire.addAll( blocksToAddFire );
+                blocksToHealFire.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
             }
         }
     }
@@ -56,18 +68,24 @@ public class ChunkDataHandler
 
         if( toHealDimMap.containsKey( dimResLoc ) )
         {
-            List<BlockInfo> blocksToHeal = toHealDimMap.get( dimResLoc );
-            List<BlockInfo> chunkBlocksToHeal = new ArrayList<>();
-            ChunkPos chunkPos = event.getChunk().getPos();
-            
+            Map<Integer, List<BlockInfo>> toHealTypeMap = toHealDimMap.get( dimResLoc );
+
             CompoundNBT levelNBT = (CompoundNBT) event.getData().get( "Level" );
             if( levelNBT == null )
                 return;
 
-            for( BlockInfo blockInfo : blocksToHeal )
+            List<BlockInfo> chunkBlocksToHeal = new ArrayList<>();
+            ChunkPos chunkPos = event.getChunk().getPos();
+
+            for( Map.Entry<Integer, List<BlockInfo>> entry : toHealTypeMap.entrySet() )
             {
-                if( new ChunkPos( blockInfo.pos ).equals( chunkPos ) )
-                    chunkBlocksToHeal.add( blockInfo );
+                List<BlockInfo> blocksToHeal = entry.getValue();
+
+                for( BlockInfo blockInfo : blocksToHeal )
+                {
+                    if( new ChunkPos( blockInfo.pos ).equals( chunkPos ) )
+                        chunkBlocksToHeal.add( blockInfo );
+                }
             }
 
             if( chunkBlocksToHeal.size() <= 0 )
@@ -89,7 +107,7 @@ public class ChunkDataHandler
                     insidesNBT.put( "tileEntity", blockInfo.tileEntityNBT );
                 newBlocksToHealNBT.put( i++ + "", insidesNBT );
                 if( !event.getWorld().chunkExists( chunkPos.x, chunkPos.z ) )
-                    blocksToHeal.remove( blockInfo );
+                    toHealTypeMap.get( blockInfo.type ).remove( blockInfo );
             }
 
             levelNBT.put( "blocksToHeal", newBlocksToHealNBT );

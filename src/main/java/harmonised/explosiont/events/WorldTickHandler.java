@@ -17,6 +17,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.TickEvent;
 
 import java.util.*;
@@ -26,8 +27,12 @@ public class WorldTickHandler
     private static final Random rand = new Random();
     private static final Map<ResourceLocation, Double> dimLastHeal = new HashMap<>();
     private static final Set<ResourceLocation> dimForceHeal = new HashSet<>();
-    private static final Double ticksPerHeal = Config.config.ticksPerHeal.get();
-    private static final Integer speedUpTreshold = Config.config.speedUpTreshold.get();
+    private static final Double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
+    private static final Double ticksPerHealFire = Config.config.ticksPerHealFire.get();
+    private static final Integer speedUpTresholdExplosion = Config.config.speedUpTresholdExplosion.get();
+    private static final Integer speedUpTresholdFire = Config.config.speedUpTresholdFire.get();
+    private static final boolean onlyHealPastMorning = Config.config.onlyHealPastMorning.get();
+    private static boolean wasDay = false;
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
     {
@@ -39,10 +44,23 @@ public class WorldTickHandler
             ChunkDataHandler.toHealDimMap.put( world.dimension.getType().getRegistryName(), new ArrayList<>() );
         List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() );
 
-        blocksToHeal.forEach( blockToHeal ->
+        if( onlyHealPastMorning || forceHeal )
         {
-            blockToHeal.ticksLeft--;
-        });
+            if( !wasDay && world.isDaytime() || forceHeal )
+            {
+                blocksToHeal.forEach( blockToHeal ->
+                {
+                    blockToHeal.ticksLeft = -1;
+                });
+            }
+        }
+        else
+        {
+            blocksToHeal.forEach( blockToHeal ->
+            {
+                blockToHeal.ticksLeft--;
+            });
+        }
 
         if( !dimLastHeal.containsKey( dimResLoc ) )
             dimLastHeal.put( dimResLoc, 0D );
@@ -50,41 +68,72 @@ public class WorldTickHandler
         if( blocksToHeal.size() > 0 )
         {
             dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) + 1 );     //add tick
-            double cost;
+            int toHealExplosion, toHealFire;
 
-            int toHeal = 0;
-
-            if( !forceHeal )
+            if( forceHeal )
             {
-                if( blocksToHeal.size() > speedUpTreshold && speedUpTreshold > 0 )      //get cost, scale if needed
-                    cost = ticksPerHeal * ( speedUpTreshold / (double) (blocksToHeal.size() ) );
-                else
-                    cost = ticksPerHeal;
+                toHealExplosion = blocksToHeal.size();
+                toHealFire = blocksToHeal.size();
+            }
+            else
+            {
+                double costExplosion;
+                double costFire;
 
-                toHeal = (int) ( dimLastHeal.get( dimResLoc ) / cost );
-                dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) % cost );  //take away cost for each block
+                if( blocksToHeal.size() > speedUpTresholdExplosion && speedUpTresholdExplosion > 0 )      //get cost, scale if needed
+                    costExplosion = ticksPerHealExplosion * ( speedUpTresholdExplosion / (double) (blocksToHeal.size() ) );
+                else
+                    costExplosion = ticksPerHealExplosion;
+
+                toHealExplosion = (int) ( dimLastHeal.get( dimResLoc ) / costExplosion );
+                dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) % costExplosion );  //take away cost for each block
+
+                if( blocksToHeal.size() > speedUpTresholdFire && speedUpTresholdFire > 0 )      //get cost, scale if needed
+                    costFire = ticksPerHealFire * ( speedUpTresholdFire / (double) (blocksToHeal.size() ) );
+                else
+                    costFire = ticksPerHealFire;
+
+                toHealFire = (int) ( dimLastHeal.get( dimResLoc ) / costFire );
+                dimLastHeal.replace( dimResLoc, dimLastHeal.get( dimResLoc ) % costFire );  //take away cost for each block
             }
 
             int index = -1;
             BlockInfo blockInfo;
             ChunkPos chunkPos;
             boolean chunkExists;
+            int healedExplosion = 0, healedFire = 0;
 
-            while( toHeal > 0 || forceHeal )
+            while( healedExplosion < toHealExplosion || healedFire < toHealFire )
             {
                 if( blocksToHeal.size() > ++index )
                 {
                     blockInfo = blocksToHeal.get( index );
                     chunkPos = new ChunkPos( blockInfo.pos );
-                    chunkExists = checkChunkExists( world, chunkPos, forceHeal );
+                    chunkExists = checkChunkExists( world, chunkPos ) || forceHeal;
 
                     if( chunkExists )
                     {
-                        if( blockInfo.ticksLeft < 0 || forceHeal )
+                        if( blockInfo.ticksLeft < 0 )
                         {
-                            toHeal--;
-                            processBlock( world, blockInfo );
-                            blocksToHeal.remove( blockInfo );
+                            System.out.println( blocksToHeal.size() );
+                            if( blockInfo.type == 0 )
+                            {
+                                if( healedExplosion < toHealExplosion )
+                                {
+                                    processBlock( world, blockInfo );
+                                    blocksToHeal.remove( blockInfo );
+                                    healedExplosion++;
+                                }
+                            }
+                            else
+                            {
+                                if( healedFire < toHealFire )
+                                {
+                                    processBlock( world, blockInfo );
+                                    blocksToHeal.remove( blockInfo );
+                                    healedFire++;
+                                }
+                            }
                         }
                     }
                 }
@@ -97,6 +146,8 @@ public class WorldTickHandler
             dimLastHeal.replace( dimResLoc, 0D );
             dimForceHeal.remove( dimResLoc );
         }
+
+        wasDay = world.isDaytime();
     }
 
     private static void processBlock( World world, BlockInfo blockInfo )
@@ -105,11 +156,11 @@ public class WorldTickHandler
         Block block = world.getBlockState(pos).getBlock();
         IFluidState fluidInfo = world.getFluidState(pos);
 
-        if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
+        if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
             if( blockInfo.state.has( GrassBlock.SNOWY ) )
                 blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-            world.setBlockState( pos, blockInfo.state );
+            world.setBlockState( pos, blockInfo.state.getBlock().getDefaultState(), blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
                 world.setTileEntity(pos, TileEntity.create(blockInfo.tileEntityNBT));
 //                    blockInfo.state.updateNeighbors( world, pos, 0 );
@@ -145,9 +196,9 @@ public class WorldTickHandler
         world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
     }
 
-    private static boolean checkChunkExists( World world, ChunkPos chunkPos, boolean forceHeal )
+    private static boolean checkChunkExists( World world, ChunkPos chunkPos )
     {
-        return world.chunkExists( chunkPos.x, chunkPos.z ) || forceHeal;
+        return world.chunkExists( chunkPos.x, chunkPos.z );
     }
 
     public static void forceAllHeal()

@@ -6,7 +6,8 @@
   "mixins": [
   ],
   "client":[
-    "FireMixin"
+    "FireRemoveBlockMixin",
+    "FireSetBlockStateMixin"
   ],
   "injectors": {
     "defaultRequire": 1

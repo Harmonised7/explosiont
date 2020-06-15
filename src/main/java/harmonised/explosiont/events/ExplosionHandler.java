@@ -19,7 +19,7 @@ import java.util.*;
 public class ExplosionHandler
 {
     private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
-    private static final double ticksPerHeal = Config.config.ticksPerHeal.get();
+    private static final double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
 
     public static void handleExplosion( ExplosionEvent.Detonate event )
     {
@@ -35,12 +35,6 @@ public class ExplosionHandler
         List<BlockPos> affectedBlocks = event.getAffectedBlocks();
         affectedBlocks.sort( Comparator.comparingInt( BlockPos::getY ) );
 
-//        for( BlockPos pos : affectedBlocks )
-//        {
-//            if( world.getBlockState( pos ).getBlock().equals( Blocks.SNOW ) )
-//                System.out.println( "snow" );
-//        }
-
         for( BlockPos blockPos : affectedBlocks )
         {
             BlockState blockState = world.getBlockState( blockPos );
@@ -53,29 +47,22 @@ public class ExplosionHandler
                 if( tileEntity != null )
                     tileEntityNBT = tileEntity.serializeNBT();
 
-                BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHeal * i), 0, tileEntityNBT );
+                BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
                 blocks.add( blockInfo );
                 i++;
             }
         }
 
-        blocks.forEach( info ->
-        {
-            if( !info.state.isSolid() )
-            {
-                world.removeTileEntity( info.pos );
-                world.setBlockState( info.pos, Blocks.AIR.getDefaultState(), Constants.BlockFlags.IS_MOVING );
-            }
-        });
+//        blocks.forEach( info ->     //no updates
+//        {
+//            world.removeTileEntity( info.pos );
+//            world.setBlockState( info.pos, Blocks.AIR.getDefaultState(), 2 | 16 );
+//        });
 
-//        blocks.sort( Comparator.comparingInt( a -> ( (BlockInfo) a ).pos.getY() ).reversed() );
-        blocks.forEach( info ->
+        blocks.forEach( info ->     //yes updates
         {
-            world.removeTileEntity( info.pos );
-            world.setBlockState( info.pos, Blocks.AIR.getDefaultState(), Constants.BlockFlags.IS_MOVING );
+            world.setBlockState( info.pos, Blocks.AIR.getDefaultState() );
         });
-//        blocks.sort( Comparator.comparingInt( a -> a.pos.getY() ) );
-
         
         blocksToHeal.removeAll( blocks );
         blocksToHeal.addAll( blocks );

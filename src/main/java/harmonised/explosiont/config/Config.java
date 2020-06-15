@@ -18,11 +18,13 @@ public class Config
         public ConfigHelper.ConfigValueListener<Boolean> onlyHealPastMorning;
 
         //Explosiont
+        public ConfigHelper.ConfigValueListener<Boolean> ExplosionHealingEnabled;
         public ConfigHelper.ConfigValueListener<Integer> healDelayExplosion;
         public ConfigHelper.ConfigValueListener<Double> ticksPerHealExplosion;
         public ConfigHelper.ConfigValueListener<Integer> speedUpTresholdExplosion;
 
         //Firent
+        public ConfigHelper.ConfigValueListener<Boolean> FireHealingEnabled;
         public ConfigHelper.ConfigValueListener<Integer> healDelayFire;
         public ConfigHelper.ConfigValueListener<Double> ticksPerHealFire;
         public ConfigHelper.ConfigValueListener<Integer> speedUpTresholdFire;
@@ -41,6 +43,11 @@ public class Config
 
             builder.push( "Explosiont" );
             {
+                this.ExplosionHealingEnabled = subscriber.subscribe(builder
+                        .comment( "Should explosions be healed?" )
+                        .translation( "pmmo.ExplosionHealingEnabled" )
+                        .define( "ExplosionHealingEnabled", true ) );
+
                 this.healDelayExplosion = subscriber.subscribe(builder
                         .comment( "How many ticks should pass until the healing starts after the explosion? (TICKS, 20 = 1 second on a non-laggy server)" )
                         .translation( "pmmo.healDelayExplosion" )
@@ -61,6 +68,11 @@ public class Config
 
             builder.push( "Firent" );
             {
+                this.FireHealingEnabled = subscriber.subscribe(builder
+                        .comment( "Should fires be healed?" )
+                        .translation( "pmmo.FireHealingEnabled" )
+                        .define( "FireHealingEnabled", true ) );
+
                 this.healDelayFire = subscriber.subscribe(builder
                         .comment( "How many ticks should pass until the healing starts after the fire? (TICKS, 20 = 1 second on a non-laggy server)" )
                         .translation( "pmmo.healDelayFire" )

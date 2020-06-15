@@ -27,37 +27,33 @@ public class ChunkDataHandler
             {
                 ResourceLocation dimResLoc = event.getWorld().getDimension().getType().getRegistryName();
                 if( !toHealDimMap.containsKey( dimResLoc ) )
-                {
                     toHealDimMap.put( dimResLoc, new HashMap<>() );
-                    toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
-                    toHealDimMap.get( dimResLoc ).put( 1, new ArrayList<>() );
-                }
-                List<BlockInfo> blocksToHealExplosion = toHealDimMap.get( dimResLoc ).get( 0 );
-                List<BlockInfo> blocksToHealFire = toHealDimMap.get( dimResLoc ).get( 1 );
-                List<BlockInfo> blocksToAddExplosion = new ArrayList<>();
-                List<BlockInfo> blocksToAddFire = new ArrayList<>();
-
                 CompoundNBT blocksToHealNBT = ( (CompoundNBT) levelNBT.get( "blocksToHeal" ) );
                 if( blocksToHealNBT == null )
                     return;
+                Map<Integer, List<BlockInfo>> blocksToAddTypes = new HashMap<>();
                 Set<String> keySet = blocksToHealNBT.keySet();
 
                 keySet.forEach( key ->
                 {
                     CompoundNBT entry = blocksToHealNBT.getCompound( key );
-                    if( entry.getInt( "type" ) == 0 )
-                        blocksToAddExplosion.add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "tileEntity" ) ) );
-                    else
-                        blocksToAddExplosion.add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "tileEntity" ) ) );
+
+                    if( !blocksToAddTypes.containsKey( entry.getInt( "type" ) ) )
+                        blocksToAddTypes.put( entry.getInt( "type" ), new ArrayList<>() );
+                    blocksToAddTypes.get( entry.getInt( "type" ) ).add( new BlockInfo( dimResLoc, NBTUtil.readBlockState( entry.getCompound( "state" ) ), NBTUtil.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "tileEntity" ) ) );
                 });
 
-                blocksToHealExplosion.removeAll( blocksToAddExplosion );
-                blocksToHealExplosion.addAll( blocksToAddExplosion );
-                blocksToHealExplosion.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
+                List<BlockInfo> blocksToHeal;
 
-                blocksToHealFire.removeAll( blocksToAddFire );
-                blocksToHealFire.addAll( blocksToAddFire );
-                blocksToHealFire.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
+                for( Map.Entry<Integer, List<BlockInfo>> entry : blocksToAddTypes.entrySet() )
+                {
+                    if( !toHealDimMap.get( dimResLoc ).containsKey( entry.getKey() ) )
+                        toHealDimMap.get( dimResLoc ).put( entry.getKey(), new ArrayList<>() );
+                    blocksToHeal = toHealDimMap.get( dimResLoc ).get( entry.getKey() );
+                    blocksToHeal.removeAll( entry.getValue() );
+                    blocksToHeal.addAll( entry.getValue() );
+                    blocksToHeal.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
+                }
             }
         }
     }

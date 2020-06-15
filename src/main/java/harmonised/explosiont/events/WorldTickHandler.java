@@ -5,6 +5,7 @@ import harmonised.explosiont.util.BlockInfo;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.GrassBlock;
+import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.ItemStack;
@@ -26,7 +27,7 @@ public class WorldTickHandler
 {
     private static final Random rand = new Random();
     private static final Map<ResourceLocation, Map<Integer, Double>> dimLastHeal = new HashMap<>();
-    private static final Set<ResourceLocation> dimForceHeal = new HashSet<>();
+    private static final Map<ResourceLocation, Set<Integer>> dimForceHeal = new HashMap<>();
     private static final Double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
     private static final Double ticksPerHealFire = Config.config.ticksPerHealFire.get();
     private static final Integer speedUpTresholdExplosion = Config.config.speedUpTresholdExplosion.get();
@@ -37,19 +38,22 @@ public class WorldTickHandler
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
     {
         ResourceLocation dimResLoc = ( event.world.dimension.getType().getRegistryName() );
+        if( !dimForceHeal.containsKey( dimResLoc ) )
+            dimForceHeal.put( dimResLoc, new HashSet<>() );
         World world = event.world;
-        boolean forceHeal = dimForceHeal.contains( dimResLoc );
+        boolean forceHeal;
 
         if( !ChunkDataHandler.toHealDimMap.containsKey( world.dimension.getType().getRegistryName() ) )
             ChunkDataHandler.toHealDimMap.put( world.dimension.getType().getRegistryName(), new HashMap<>() );
 
         for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() ).entrySet() )
         {
+            forceHeal = dimForceHeal.get( dimResLoc ).contains( entry.getKey() );
             List<BlockInfo> blocksToHeal = entry.getValue();
 
             if( onlyHealPastMorning || forceHeal )
             {
-                if( !wasDay && world.isDaytime() || forceHeal )
+                if( ( !wasDay && world.isDaytime() ) || forceHeal )
                 {
                     blocksToHeal.forEach( blockToHeal ->
                     {
@@ -68,16 +72,17 @@ public class WorldTickHandler
             if( !dimLastHeal.containsKey( dimResLoc ) )
                 dimLastHeal.put( dimResLoc, new HashMap<>() );
 
-            processBlocks( world, blocksToHeal, entry.getKey(), forceHeal );
-
-            wasDay = world.isDaytime();
-
+            healBlocks( world, blocksToHeal, entry.getKey(), forceHeal );
+            if( blocksToHeal.size() == 0 )
+                dimForceHeal.get( dimResLoc ).remove( entry.getKey() );
         }
+
+        wasDay = world.isDaytime();
     }
 
-    private static void processBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
+    private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
     {
-        ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
+       ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
 
         if( blocksToHeal.size() > 0 )
         {
@@ -100,21 +105,15 @@ public class WorldTickHandler
 
             dimLastHeal.get( dimResLoc ).replace( type, dimLastHeal.get( dimResLoc ).get( type ) + 1 );     //add tick
             int toHeal;
+            double cost;
 
-            if( forceHeal )
-                toHeal = blocksToHeal.size();
+            if( blocksToHeal.size() > speedUpTreshold && speedUpTreshold > 0 )      //get cost, scale if needed
+                cost = ticksPerHeal * ( speedUpTreshold / (double) (blocksToHeal.size() ) );
             else
-            {
-                double cost;
+                cost = ticksPerHeal;
 
-                if( blocksToHeal.size() > speedUpTreshold && speedUpTreshold > 0 )      //get cost, scale if needed
-                    cost = ticksPerHeal * ( speedUpTreshold / (double) (blocksToHeal.size() ) );
-                else
-                    cost = ticksPerHeal;
-
-                toHeal = (int) ( dimLastHeal.get( dimResLoc ).get( type ) / cost );
-                dimLastHeal.get( dimResLoc ).replace( type, dimLastHeal.get( dimResLoc ).get( type ) % cost );  //take away cost for each block
-            }
+            toHeal = (int) ( dimLastHeal.get( dimResLoc ).get( type ) / cost );
+            dimLastHeal.get( dimResLoc ).replace( type, dimLastHeal.get( dimResLoc ).get( type ) % cost );  //take away cost for each block
 
             int index = -1;
             BlockInfo blockInfo;
@@ -122,19 +121,19 @@ public class WorldTickHandler
             boolean chunkExists;
             int healed = 0;
 
-            while( healed < toHeal )
+            while( healed < toHeal || forceHeal )
             {
                 if( blocksToHeal.size() > ++index )
                 {
                     blockInfo = blocksToHeal.get( index );
                     chunkPos = new ChunkPos( blockInfo.pos );
-                    chunkExists = checkChunkExists( world, chunkPos ) || forceHeal;
+                    chunkExists = checkChunkExists( world, chunkPos );
 
-                    if( chunkExists )
+                    if( chunkExists || forceHeal )
                     {
-                        if( blockInfo.ticksLeft < 0 )
+                        if( blockInfo.ticksLeft < 0 || forceHeal )
                         {
-                            processBlock( world, blockInfo );
+                            healBlock( world, blockInfo );
                             blocksToHeal.remove( blockInfo );
                             healed++;
                         }
@@ -146,12 +145,12 @@ public class WorldTickHandler
         }
         else
         {
+            dimForceHeal.get( dimResLoc ).remove( type );
             dimLastHeal.get( dimResLoc ).replace( type, 0D );
-            dimForceHeal.remove( dimResLoc );
         }
     }
 
-    private static void processBlock( World world, BlockInfo blockInfo )
+    private static void healBlock( World world, BlockInfo blockInfo )
     {
         BlockPos pos = blockInfo.pos;
         Block block = world.getBlockState(pos).getBlock();
@@ -159,9 +158,13 @@ public class WorldTickHandler
 
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
+//            System.out.println( blockInfo.type + " " + ( blockInfo.type == 0 ? 3 : 2 | 16 ) );
             if( blockInfo.state.has( GrassBlock.SNOWY ) )
                 blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-            world.setBlockState( pos, blockInfo.state.getBlock().getDefaultState(), blockInfo.type == 0 ? 3 : 2 | 16 );
+            if( blockInfo.state.has( LeavesBlock.DISTANCE ) )
+                blockInfo.state = blockInfo.state.with( LeavesBlock.DISTANCE, 1 );
+//            world.setBlockState( pos, blockInfo.type == 0 ? blockInfo.state.getBlock().getDefaultState() : blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
+            world.setBlockState( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
                 world.setTileEntity(pos, TileEntity.create(blockInfo.tileEntityNBT));
 //                    blockInfo.state.updateNeighbors( world, pos, 0 );
@@ -204,9 +207,16 @@ public class WorldTickHandler
 
     public static void forceAllHeal()
     {
+        //Map<ResourceLocation, Map<Integer, List<BlockInfo>>>
         ChunkDataHandler.toHealDimMap.forEach( (key, value) ->
         {
-            dimForceHeal.add( key );
+            if( !dimForceHeal.containsKey( key ) )
+                dimForceHeal.put( key, new HashSet<>() );
+
+            value.forEach( (key2, value2) ->
+            {
+                dimForceHeal.get( key ).add( key2 );
+            });
         });
     }
 }

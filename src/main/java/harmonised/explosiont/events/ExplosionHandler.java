@@ -18,68 +18,67 @@ import java.util.*;
 
 public class ExplosionHandler
 {
+    private static final boolean ExplosionHealingEnabled = Config.config.ExplosionHealingEnabled.get();
     private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
     private static final double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
 
     public static void handleExplosion( ExplosionEvent.Detonate event )
     {
-        List<BlockInfo> blocks = new ArrayList<>();
-        World world = event.getWorld();
-        ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
-
-        if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
-            ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
-        if( !ChunkDataHandler.toHealDimMap.get( dimResLoc ).containsKey( 0 ) )
-            ChunkDataHandler.toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
-
-        List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc ).get( 0 );
-        int i = 0;
-        List<BlockPos> affectedBlocks = event.getAffectedBlocks();
-        affectedBlocks.sort( Comparator.comparingInt( BlockPos::getY ) );
-
-        for( BlockPos blockPos : affectedBlocks )
+        if( ExplosionHealingEnabled )
         {
-            BlockState blockState = world.getBlockState( blockPos );
-            Block block = blockState.getBlock();
+            List<BlockInfo> blocks = new ArrayList<>();
+            World world = event.getWorld();
+            ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
 
-            if( !block.equals( Blocks.AIR ) && !block.equals( Blocks.CAVE_AIR ) && !block.equals( Blocks.VOID_AIR ) && !block.equals( Blocks.FIRE ) && ( world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) ) )
+            if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
+                ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
+            if( !ChunkDataHandler.toHealDimMap.get( dimResLoc ).containsKey( 0 ) )
+                ChunkDataHandler.toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
+
+            List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc ).get( 0 );
+            int i = 0;
+            List<BlockPos> affectedBlocks = event.getAffectedBlocks();
+            affectedBlocks.sort( Comparator.comparingInt( BlockPos::getY ) );
+
+            for( BlockPos blockPos : affectedBlocks )
             {
-                TileEntity tileEntity = world.getTileEntity( blockPos );
-                CompoundNBT tileEntityNBT = null;
-                if( tileEntity != null )
-                    tileEntityNBT = tileEntity.serializeNBT();
+                BlockState blockState = world.getBlockState( blockPos );
+                Block block = blockState.getBlock();
 
-                BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
-                blocks.add( blockInfo );
-                i++;
+                if( !block.equals( Blocks.AIR ) && !block.equals( Blocks.CAVE_AIR ) && !block.equals( Blocks.VOID_AIR ) && !block.equals( Blocks.FIRE ) && ( world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) ) )
+                {
+                    TileEntity tileEntity = world.getTileEntity( blockPos );
+                    CompoundNBT tileEntityNBT = null;
+                    if( tileEntity != null )
+                        tileEntityNBT = tileEntity.serializeNBT();
+
+                    BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
+                    blocks.add( blockInfo );
+                    i++;
+                }
             }
+
+            blocks.forEach( info ->     //yes updates
+            {
+                if( !info.state.isSolid() )
+                {
+                    world.removeTileEntity( info.pos );
+                    world.setBlockState( info.pos, Blocks.AIR.getDefaultState() );
+                }
+            });
+
+            blocks.forEach( info ->     //yes updates
+            {
+                if( info.state.isSolid() )
+                {
+                    world.removeTileEntity( info.pos );
+                    world.setBlockState( info.pos, Blocks.AIR.getDefaultState() );
+                }
+            });
+
+            blocksToHeal.removeAll( blocks );
+            blocksToHeal.addAll( blocks );
+            blocksToHeal.sort( Comparator.comparingInt( info -> info.pos.getY() ) );
         }
-
-//        blocks.forEach( info ->     //no updates
-//        {
-//            world.removeTileEntity( info.pos );
-//            world.setBlockState( info.pos, Blocks.AIR.getDefaultState(), 2 | 16 );
-//        });
-
-        blocks.forEach( info ->     //yes updates
-        {
-            world.setBlockState( info.pos, Blocks.AIR.getDefaultState() );
-        });
-        
-        blocksToHeal.removeAll( blocks );
-        blocksToHeal.addAll( blocks );
-        blocksToHeal.sort( Comparator.comparingInt( info -> info.pos.getY() ) );
-
-//        int j = 0;
-//
-//        blocksToHeal.forEach( a ->
-//        {
-//            if( )
-//        });
-
-//        WorldTickHandler.explosions.add( WorldTickHandler.explosions.size(), new ExplosionInfo( blocks, 0 ) );
-//        System.out.println( event.getExplosion() );
-
-//        event.getExplosion().getAffectedBlockPositions().clear();
     }
 }

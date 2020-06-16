@@ -53,7 +53,7 @@ public class WorldTickHandler
 
             if( onlyHealPastMorning || forceHeal )
             {
-                if( ( !wasDay && world.isDaytime() ) || forceHeal )
+                if( ( !wasDay && isDayTime( world ) ) || forceHeal )
                 {
                     blocksToHeal.forEach( blockToHeal ->
                     {
@@ -77,7 +77,12 @@ public class WorldTickHandler
                 dimForceHeal.get( dimResLoc ).remove( entry.getKey() );
         }
 
-        wasDay = world.isDaytime();
+        wasDay = isDayTime( world );
+    }
+
+    private static boolean isDayTime( World world )
+    {
+        return world.getGameTime() % 24000 < 12000;
     }
 
     private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )

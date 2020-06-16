@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.GrassBlock;
 import net.minecraft.block.LeavesBlock;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.fluid.IFluidState;
 import net.minecraft.item.ItemStack;
@@ -18,6 +19,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.TickEvent;
 
@@ -28,12 +31,12 @@ public class WorldTickHandler
     private static final Random rand = new Random();
     private static final Map<ResourceLocation, Map<Integer, Double>> dimLastHeal = new HashMap<>();
     private static final Map<ResourceLocation, Set<Integer>> dimForceHeal = new HashMap<>();
+    private static final Map<ResourceLocation, Boolean> dimWasDay = new HashMap<>();
     private static final Double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
     private static final Double ticksPerHealFire = Config.config.ticksPerHealFire.get();
     private static final Integer speedUpTresholdExplosion = Config.config.speedUpTresholdExplosion.get();
     private static final Integer speedUpTresholdFire = Config.config.speedUpTresholdFire.get();
     private static final boolean onlyHealPastMorning = Config.config.onlyHealPastMorning.get();
-    private static boolean wasDay = false;
 
     public static void handleWorldTick( TickEvent.WorldTickEvent event )
     {
@@ -42,10 +45,10 @@ public class WorldTickHandler
             dimForceHeal.put( dimResLoc, new HashSet<>() );
         World world = event.world;
         boolean forceHeal;
-
+        if( !dimWasDay.containsKey( dimResLoc ) )
+            dimWasDay.put( dimResLoc, isDayTime( world ) );
         if( !ChunkDataHandler.toHealDimMap.containsKey( world.dimension.getType().getRegistryName() ) )
             ChunkDataHandler.toHealDimMap.put( world.dimension.getType().getRegistryName(), new HashMap<>() );
-
         for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() ).entrySet() )
         {
             forceHeal = dimForceHeal.get( dimResLoc ).contains( entry.getKey() );
@@ -53,7 +56,7 @@ public class WorldTickHandler
 
             if( onlyHealPastMorning || forceHeal )
             {
-                if( ( !wasDay && isDayTime( world ) ) || forceHeal )
+                if( ( !dimWasDay.get( dimResLoc ) && isDayTime( world ) ) || forceHeal )
                 {
                     blocksToHeal.forEach( blockToHeal ->
                     {
@@ -77,12 +80,12 @@ public class WorldTickHandler
                 dimForceHeal.get( dimResLoc ).remove( entry.getKey() );
         }
 
-        wasDay = isDayTime( world );
+        dimWasDay.replace( dimResLoc, isDayTime( world ) );
     }
 
     private static boolean isDayTime( World world )
     {
-        return world.getGameTime() % 24000 < 12000;
+        return DimensionManager.getWorld( world.getServer(), DimensionType.OVERWORLD, false, false ).isDaytime();
     }
 
     private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
@@ -163,16 +166,13 @@ public class WorldTickHandler
 
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
-//            System.out.println( blockInfo.type + " " + ( blockInfo.type == 0 ? 3 : 2 | 16 ) );
             if( blockInfo.state.has( GrassBlock.SNOWY ) )
                 blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
             if( blockInfo.state.has( LeavesBlock.DISTANCE ) )
                 blockInfo.state = blockInfo.state.with( LeavesBlock.DISTANCE, 1 );
-//            world.setBlockState( pos, blockInfo.type == 0 ? blockInfo.state.getBlock().getDefaultState() : blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             world.setBlockState( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
                 world.setTileEntity(pos, TileEntity.create(blockInfo.tileEntityNBT));
-//                    blockInfo.state.updateNeighbors( world, pos, 0 );
 
             world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
             {

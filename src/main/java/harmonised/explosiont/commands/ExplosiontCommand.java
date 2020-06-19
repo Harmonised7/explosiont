@@ -13,7 +13,8 @@ public class ExplosiontCommand
     public static void register( CommandDispatcher<CommandSource> dispatcher )
     {
         dispatcher.register( Commands.literal( "forceHealAll" )
-                  .executes( ExplosiontCommand::forceHealAll ));
+                .requires( player -> { return player.hasPermissionLevel( 2 ); })
+                .executes( ExplosiontCommand::forceHealAll ));
     }
 
     private static int forceHealAll( CommandContext<CommandSource> context )

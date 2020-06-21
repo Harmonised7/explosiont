@@ -32,7 +32,7 @@ public class ExplosiontMod
         ChunkDataHandler.init();
     }
 
-    private void serverStart(FMLServerStartingEvent event)
+    private void serverStart( FMLServerStartingEvent event)
     {
         ExplosiontCommand.register( event.getCommandDispatcher() );
     }

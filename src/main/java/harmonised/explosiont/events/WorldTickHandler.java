@@ -44,14 +44,6 @@ public class WorldTickHandler
 //        {
 //            System.out.println( a.getUniqueID() + " " + a.getName().getString() );
 //        });
-        try
-        {
-            System.out.println( event.world.getServer().getPlayerList().getHostPlayerData() + " b" );
-        }
-        catch( Exception e )
-        {
-
-        }
         ResourceLocation dimResLoc = ( event.world.dimension.getType().getRegistryName() );
         if( !dimForceHeal.containsKey( dimResLoc ) )
             dimForceHeal.put( dimResLoc, new HashSet<>() );

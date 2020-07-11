@@ -12,6 +12,7 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
@@ -88,7 +89,7 @@ public class WorldTickHandler
 
     private static boolean isDayTime( World world )
     {
-        return DimensionManager.getWorld( world.getServer(), DimensionType.field_235999_c_, false, false ).isDaytime();
+        return world.getServer().getWorld( World.field_234918_g_ ).isDaytime();
     }
 
     private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
@@ -175,7 +176,7 @@ public class WorldTickHandler
                 blockInfo.state = blockInfo.state.with( LeavesBlock.DISTANCE, 1 );
             world.setBlockState( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
-                world.setTileEntity(pos, TileEntity.create(blockInfo.tileEntityNBT));
+                world.setTileEntity( pos, TileEntity.readTileEntity( blockInfo.state, blockInfo.tileEntityNBT ) );
 
             world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
             {

@@ -1,5 +1,6 @@
 package harmonised.explosiont.events;
 
+import net.minecraft.entity.monster.CreeperEntity;
 import net.minecraftforge.common.util.Constants;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
@@ -19,6 +20,7 @@ import java.util.*;
 public class ExplosionHandler
 {
     private static final boolean ExplosionHealingEnabled = Config.config.ExplosionHealingEnabled.get();
+    private static final boolean OnlyHealCreepers = Config.config.OnlyHealCreepers.get();
     private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
     private static final double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
 
@@ -26,6 +28,8 @@ public class ExplosionHandler
     {
         if( ExplosionHealingEnabled )
         {
+            if( OnlyHealCreepers && !( event.getExplosion().getDamageSource().getTrueSource() instanceof CreeperEntity) )
+                return;
             List<BlockInfo> blocks = new ArrayList<>();
             World world = event.getWorld();
             ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();

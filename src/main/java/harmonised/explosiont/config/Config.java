@@ -19,6 +19,7 @@ public class Config
 
         //Explosiont
         public ConfigHelper.ConfigValueListener<Boolean> ExplosionHealingEnabled;
+        public ConfigHelper.ConfigValueListener<Boolean> OnlyHealCreepers;
         public ConfigHelper.ConfigValueListener<Integer> healDelayExplosion;
         public ConfigHelper.ConfigValueListener<Double> ticksPerHealExplosion;
         public ConfigHelper.ConfigValueListener<Integer> speedUpTresholdExplosion;
@@ -47,6 +48,11 @@ public class Config
                         .comment( "Should explosions be healed?" )
                         .translation( "pmmo.ExplosionHealingEnabled" )
                         .define( "ExplosionHealingEnabled", true ) );
+
+                this.OnlyHealCreepers = subscriber.subscribe(builder
+                        .comment( "Should only creeper explosions be healed? (Excluding any other type of explosive)" )
+                        .translation( "pmmo.OnlyHealCreepers" )
+                        .define( "OnlyHealCreepers", false ) );
 
                 this.healDelayExplosion = subscriber.subscribe(builder
                         .comment( "How many ticks should pass until the healing starts after the explosion? (TICKS, 20 = 1 second on a non-laggy server)" )

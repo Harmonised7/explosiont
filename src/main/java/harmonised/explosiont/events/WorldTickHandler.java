@@ -8,7 +8,7 @@ import net.minecraft.block.GrassBlock;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.fluid.IFluidState;
+import net.minecraft.fluid.FluidState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.tileentity.TileEntity;
@@ -18,9 +18,8 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.DimensionType;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
-import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.TickEvent;
 
@@ -44,16 +43,16 @@ public class WorldTickHandler
 //        {
 //            System.out.println( a.getUniqueID() + " " + a.getName().getString() );
 //        });
-        ResourceLocation dimResLoc = ( event.world.dimension.getType().getRegistryName() );
+        ResourceLocation dimResLoc = ( event.world.func_234922_V_().func_240901_a_() );
         if( !dimForceHeal.containsKey( dimResLoc ) )
             dimForceHeal.put( dimResLoc, new HashSet<>() );
         World world = event.world;
         boolean forceHeal;
         if( !dimWasDay.containsKey( dimResLoc ) )
             dimWasDay.put( dimResLoc, isDayTime( world ) );
-        if( !ChunkDataHandler.toHealDimMap.containsKey( world.dimension.getType().getRegistryName() ) )
-            ChunkDataHandler.toHealDimMap.put( world.dimension.getType().getRegistryName(), new HashMap<>() );
-        for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( world.dimension.getType().getRegistryName() ).entrySet() )
+        if( !ChunkDataHandler.toHealDimMap.containsKey( world.func_234922_V_().func_240901_a_() ) )
+            ChunkDataHandler.toHealDimMap.put( world.func_234922_V_().func_240901_a_(), new HashMap<>() );
+        for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( world.func_234922_V_().func_240901_a_() ).entrySet() )
         {
             forceHeal = dimForceHeal.get( dimResLoc ).contains( entry.getKey() );
             List<BlockInfo> blocksToHeal = entry.getValue();
@@ -89,12 +88,12 @@ public class WorldTickHandler
 
     private static boolean isDayTime( World world )
     {
-        return DimensionManager.getWorld( world.getServer(), DimensionType.OVERWORLD, false, false ).isDaytime();
+        return DimensionManager.getWorld( world.getServer(), DimensionType.field_235999_c_, false, false ).isDaytime();
     }
 
     private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
     {
-       ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
+       ResourceLocation dimResLoc = world.func_234922_V_().func_240901_a_();
 
         if( blocksToHeal.size() > 0 )
         {
@@ -166,13 +165,13 @@ public class WorldTickHandler
     {
         BlockPos pos = blockInfo.pos;
         Block block = world.getBlockState(pos).getBlock();
-        IFluidState fluidInfo = world.getFluidState(pos);
+        FluidState fluidInfo = world.getFluidState(pos);
 
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
-            if( blockInfo.state.has( GrassBlock.SNOWY ) )
+            if( blockInfo.state.func_235901_b_( GrassBlock.SNOWY ) )
                 blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-            if( blockInfo.state.has( LeavesBlock.DISTANCE ) )
+            if( blockInfo.state.func_235901_b_( LeavesBlock.DISTANCE ) )
                 blockInfo.state = blockInfo.state.with( LeavesBlock.DISTANCE, 1 );
             world.setBlockState( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
@@ -180,14 +179,14 @@ public class WorldTickHandler
 
             world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
             {
-                BlockPos entityPos = a.getPosition();
+                BlockPos entityPos = new BlockPos( a.getPositionVec() );
                 int i = 1;
                 while( world.getBlockState( entityPos.up( i ) ).isSolid() || world.getBlockState( entityPos.up( i + 1 ) ).isSolid() )
                 {
                     i++;
                 }
-                a.setPosition( a.getPositionVector().getX(), a.getPositionVector().y + i, a.getPositionVector().z );
-                world.playSound(null, a.getPositionVector().getX(), a.getPositionVector().getY(), a.getPositionVector().getZ(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.8F + rand.nextFloat() * 0.4F, 0.9F + rand.nextFloat() * 0.15F );
+                a.setPosition( a.getPositionVec().getX(), a.getPositionVec().y + i, a.getPositionVec().z );
+                world.playSound(null, a.getPositionVec().getX(), a.getPositionVec().getY(), a.getPositionVec().getZ(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.8F + rand.nextFloat() * 0.4F, 0.9F + rand.nextFloat() * 0.15F );
             });
         }
         else

@@ -11,7 +11,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import net.minecraftforge.event.world.ExplosionEvent;
 
@@ -32,7 +31,7 @@ public class ExplosionHandler
                 return;
             List<BlockInfo> blocks = new ArrayList<>();
             World world = event.getWorld();
-            ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
+            ResourceLocation dimResLoc = world.func_234922_V_().func_240901_a_();
 
             if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
                 ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );

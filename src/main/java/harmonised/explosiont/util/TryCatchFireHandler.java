@@ -23,7 +23,7 @@ public class TryCatchFireHandler
     {
         if( FireHealingEnabled )
         {
-            ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
+            ResourceLocation dimResLoc = world.func_234922_V_().func_240901_a_();
             TileEntity tileEntity = world.getTileEntity(pos);
 
             if (!ChunkDataHandler.toHealDimMap.containsKey(dimResLoc))

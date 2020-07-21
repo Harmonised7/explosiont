@@ -5,6 +5,7 @@ import harmonised.explosiont.config.Config;
 import harmonised.explosiont.events.ChunkDataHandler;
 import harmonised.explosiont.util.Reference;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
@@ -18,7 +19,7 @@ public class ExplosiontMod
     {
         FMLJavaModLoadingContext.get().getModEventBus().addListener( this::modsLoading );
         MinecraftForge.EVENT_BUS.addListener( this::serverAboutToStart );
-        MinecraftForge.EVENT_BUS.addListener( this::serverStart );
+        MinecraftForge.EVENT_BUS.addListener( this::registerCommands );
         Config.init();
     }
 
@@ -32,8 +33,8 @@ public class ExplosiontMod
         ChunkDataHandler.init();
     }
 
-    private void serverStart( FMLServerStartingEvent event)
+    private void registerCommands( RegisterCommandsEvent event )
     {
-        ExplosiontCommand.register( event.getCommandDispatcher() );
+        ExplosiontCommand.register( event.getDispatcher() );
     }
 }

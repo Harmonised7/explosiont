@@ -3,6 +3,7 @@ package harmonised.explosiont;
 import harmonised.explosiont.commands.ExplosiontCommand;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.events.ChunkDataHandler;
+import harmonised.explosiont.util.BlackList;
 import harmonised.explosiont.util.Reference;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -30,6 +31,7 @@ public class ExplosiontMod
     private void serverAboutToStart( FMLServerAboutToStartEvent event )
     {
         ChunkDataHandler.init();
+        BlackList.init();
     }
 
     private void serverStart( FMLServerStartingEvent event)

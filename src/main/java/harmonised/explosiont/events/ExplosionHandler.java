@@ -1,5 +1,6 @@
 package harmonised.explosiont.events;
 
+import harmonised.explosiont.util.BlackList;
 import net.minecraft.entity.monster.CreeperEntity;
 import net.minecraftforge.common.util.Constants;
 import harmonised.explosiont.config.Config;
@@ -49,7 +50,7 @@ public class ExplosionHandler
                 BlockState blockState = world.getBlockState( blockPos );
                 Block block = blockState.getBlock();
 
-                if( !block.equals( Blocks.AIR ) && !block.equals( Blocks.CAVE_AIR ) && !block.equals( Blocks.VOID_AIR ) && !block.equals( Blocks.FIRE ) && ( world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) ) )
+                if( !BlackList.blackList.contains( block.getRegistryName().toString() ) && world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) )
                 {
                     if( block.equals( Blocks.NETHER_PORTAL ) )
                         blockState = Blocks.FIRE.getDefaultState();

@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "explosiont",
+    "name": "Explosion't",
+    "description": "Explosions! ...Where..? What explosions?",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["Harmonised#6495"],
+    "credits": "The MMD Discord Server is the best!",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

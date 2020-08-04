@@ -1,161 +1,77 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        maven { url  = 'https://plugins.gradle.org/m2/' }
         jcenter()
-        mavenCentral()
-        maven { url='https://dist.creeper.host/Sponge/maven' }
+        maven { url = "https://files.minecraftforge.net/maven" }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
-        classpath "com.wynprice.cursemaven:CurseMaven:2.1.1"
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
+apply plugin: 'net.minecraftforge.gradle.forge'
+//Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: "com.wynprice.cursemaven"
 
-version = '1.16-1.0'
-group = 'harmonised.explosiont'
-archivesBaseName = 'explosiont'
+version = "2.3"
+group = "harmonised.explosiont" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "explosiont-1.12"
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
+sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
 
 minecraft {
-    mappings channel: 'snapshot', version: '20200707-1.16.1'
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-    runs {
-        client {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            arg "-mixin.config="+archivesBaseName+".mixins.json"
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-        server {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            arg "-mixin.config="+archivesBaseName+".mixins.json"
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
+    version = "1.12.2-14.23.5.2847"
+    runDir = "run"
 
-        data {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            args '--mod', 'explosiont', '--all', '--output', file('src/generated/resources/')
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
+    // the mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   snapshot are built nightly.
+    // stable_#            stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not always work.
+    // simply re-run your setup task after changing the mappings to update your workspace.
+    mappings = "snapshot_20171003"
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
-repositories
-{
-    jcenter()
+dependencies {
+    // you may put jars on which you depend on in ./libs
+    // or you may define them like so..
+    //compile "some.group:artifact:version:classifier"
+    //compile "some.group:artifact:version"
 
-    maven
-    {
-        // location of the maven that hosts JEI files
-        name = "Progwml6 maven"
-        url = "https://dvs1.progwml6.com/files/maven/"
-    }
+    // real examples
+    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
+    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
 
-    maven
-    {
-        // location of a maven mirror for JEI files, as a fallback
-        name = "ModMaven"
-        url = "https://modmaven.k-4u.nl"
-    }
+    // the 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
+    //provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
 
-    maven
-    {
-        url "http://dvs1.progwml6.com/files/maven/"
-    }
+    // the deobf configurations:  'deobfCompile' and 'deobfProvided' are the same as the normal compile and provided,
+    // except that these dependencies get remapped to your current MCP mappings
+    //deobfCompile 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+    //deobfProvided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
 
-    maven
-    {
-        url = "https://maven.theillusivec4.top/"
-    }
+    // for more info...
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
-    mavenLocal()
-
-    maven {url='https://dist.creeper.host/Sponge/maven'}
-    jcenter()
-    mavenCentral()
 }
 
-dependencies
-{
-    minecraft 'net.minecraftforge:forge:1.16.1-32.0.47'
-    implementation 'com.google.code.gson:gson:2.8.6'
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
 
-    compile 'org.spongepowered:mixin:0.8'
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
 
-//    compileOnly fg.deobf("mezz.jei:jei-1.15.2:6.0.0.3:api")
-//    runtimeOnly fg.deobf("mezz.jei:jei-1.15.2:6.0.0.3")
-
-//    runtimeOnly fg.deobf("curse.maven:ores-and-metals:2967502")
-//    runtimeOnly fg.deobf("curse.maven:curio-of-undying:2880784")
-//    runtimeOnly fg.deobf("curse.maven:worldedit:2873556")
-//    runtimeOnly fg.deobf("curse.maven:worldeditcui-forge-edition-3:2976520")
-//    runtimeOnly fg.deobf("curse.maven:atmospheric:2957921")
-
-//    runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-1.15.2-2.0.2.2")
-//    compileOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-1.15.2-2.0.2.2:api")
-}
-
-jar {
-    manifest {
-        attributes([
-            "Specification-Title": "explosiont",
-            "Specification-Vendor": "expntsareus",
-            "Specification-Version": "1", 
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"explosiontsareus",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-}
 
-def reobfFile = file("$buildDir/reobfJar/output.jar")
-def reobfArtifact = artifacts.add('default', reobfFile) {
-    type 'jar'
-    builtBy 'reobfJar'
-}
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact reobfArtifact
-        }
+    // copy everything else except the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
     }
-    repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
-        }
-    }
-}
-
-apply plugin: 'org.spongepowered.mixin'
-
-mixin
-{
-    add sourceSets.main, "${modid}.refmap.json"
 }

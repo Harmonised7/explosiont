@@ -1,5 +1,6 @@
 package harmonised.explosiont.events;
 
+import harmonised.explosiont.config.TagWrappers;
 import harmonised.explosiont.util.BlackList;
 import net.minecraft.entity.monster.CreeperEntity;
 import net.minecraftforge.common.util.Constants;
@@ -63,6 +64,8 @@ public class ExplosionHandler
                     BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
                     blocks.add( blockInfo );
                     i++;
+
+                    System.out.println( TagWrappers.isBlockInFilter( block ) );
                 }
             }
 

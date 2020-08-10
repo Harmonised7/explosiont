@@ -1,4 +1,4 @@
-package harmonised.explosiont.events;
+package harmonised.explosiont.util;
 
 public enum Filter
 {

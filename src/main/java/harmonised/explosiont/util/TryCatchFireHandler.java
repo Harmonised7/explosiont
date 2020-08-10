@@ -25,7 +25,7 @@ public class TryCatchFireHandler
         if( FireHealingEnabled )
         {
             BlockState state = world.getBlockState( pos );
-            if( !BlackList.blackList.contains( state.getBlock().getRegistryName().toString() ) )
+            if( !BlackList.checkBlock( state.getBlock().getRegistryName().toString() ) )
             {
                 ResourceLocation dimResLoc = world.dimension.getType().getRegistryName();
                 TileEntity tileEntity = world.getTileEntity(pos);

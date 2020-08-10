@@ -3,31 +3,49 @@ package harmonised.explosiont.config;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import harmonised.explosiont.ExplosiontMod;
+import harmonised.explosiont.util.BlackList;
 import harmonised.explosiont.util.LogHandler;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class JsonConfig
 {
     public static final Type mapType = new TypeToken<Map<String, Set<String>>>(){}.getType();
-    private static final String hardDataPath = "/assets/explosiont/util/filter.json";
-    private static final String dataPath = "explosiont/filter.json";
-    public static Map<String, Set<String>> filter;
+    private static final String hardDataPath = "/assets/explosiont/util/data.json";
+    private static final String dataPath = "explosiont/data.json";
+    public static Map<String, Set<String>> data;
     public static Gson gson = new Gson();
 
     public static void init()
     {
         try
         {
-            File filterFile = FMLPaths.CONFIGDIR.get().resolve( dataPath ).toFile();
-            createData( filterFile );
-            filter = readFromFile( filterFile.getPath() );
+            File dataFile = FMLPaths.CONFIGDIR.get().resolve( dataPath ).toFile();
+            if( !dataFile.exists() )
+                createData( dataFile );
+            data = readFromFile( dataFile.getPath() );
+
+            if( data.containsKey( "filter" ) )
+            {
+                BlackList.filter = new HashSet<>();
+
+                for( String item : data.get( "filter" ) )
+                {
+                    if( ForgeRegistries.ITEMS.containsKey( new ResourceLocation( item ) ) )
+                        BlackList.filter.add( item );
+                    else
+                        LogHandler.LOGGER.info( "Explosion't filter invalid block: \"" + item + "\"" );
+                }
+            }
         }
         catch( Exception e )
         {

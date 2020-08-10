@@ -19,7 +19,6 @@ import java.util.*;
 
 public class ExplosionHandler
 {
-    public static Filter filterType = Config.config.filterType.get() ? Filter.WHITELIST : Filter.BLACKLIST;
     private static final boolean ExplosionHealingEnabled = Config.config.ExplosionHealingEnabled.get();
     private static final boolean OnlyHealCreepers = Config.config.OnlyHealCreepers.get();
     private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
@@ -51,7 +50,7 @@ public class ExplosionHandler
                 BlockState blockState = world.getBlockState( blockPos );
                 Block block = blockState.getBlock();
 
-                if( !BlackList.blackList.contains( block.getRegistryName().toString() ) && world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) )
+                if( BlackList.checkBlock( block.getRegistryName().toString() ) && world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) )
                 {
                     if( block.equals( Blocks.NETHER_PORTAL ) )
                         blockState = Blocks.FIRE.getDefaultState();

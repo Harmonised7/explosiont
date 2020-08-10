@@ -49,7 +49,7 @@ public class ExplosionHandler
                 BlockState blockState = world.getBlockState( blockPos );
                 Block block = blockState.getBlock();
 
-                if( !BlackList.blackList.contains( block.getRegistryName().toString() ) && world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) )
+                if( BlackList.checkBlock( block.getRegistryName().toString() ) && world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) )
                 {
                     if( block.equals( Blocks.NETHER_PORTAL ) )
                         blockState = Blocks.FIRE.getDefaultState();

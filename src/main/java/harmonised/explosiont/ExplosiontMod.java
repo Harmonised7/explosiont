@@ -2,6 +2,7 @@ package harmonised.explosiont;
 
 import harmonised.explosiont.commands.ExplosiontCommand;
 import harmonised.explosiont.config.Config;
+import harmonised.explosiont.config.JsonConfig;
 import harmonised.explosiont.events.ChunkDataHandler;
 import harmonised.explosiont.util.BlackList;
 import harmonised.explosiont.util.Reference;
@@ -31,8 +32,9 @@ public class ExplosiontMod
 
     private void serverAboutToStart( FMLServerAboutToStartEvent event )
     {
-        ChunkDataHandler.init();
         BlackList.init();
+        JsonConfig.init();
+        ChunkDataHandler.init();
     }
 
     private void registerCommands( RegisterCommandsEvent event )

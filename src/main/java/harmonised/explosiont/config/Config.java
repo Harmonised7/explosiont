@@ -16,6 +16,7 @@ public class Config
     {
         //Global
         public ConfigHelper.ConfigValueListener<Boolean> onlyHealPastMorning;
+        public ConfigHelper.ConfigValueListener<Boolean> filterType;
 
         //Explosiont
         public ConfigHelper.ConfigValueListener<Boolean> ExplosionHealingEnabled;
@@ -38,6 +39,11 @@ public class Config
                         .comment( "Should explosions only start to heal when the night passes? (This would ignore all delays)" )
                         .translation( "pmmo.onlyHealPastMorning" )
                         .define( "onlyHealPastMorning", false ) );
+
+                this.filterType = subscriber.subscribe(builder
+                        .comment( "Should the explosiont:filter Block Tag be a Whitelist, or a Blacklist? (TRUE:WHITELIST, FALSE:BLACKLIST)" )
+                        .translation( "pmmo.filterType" )
+                        .define( "filterType", false ) );
 
                 builder.pop();
             }

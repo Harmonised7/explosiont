@@ -1,9 +1,8 @@
 package harmonised.explosiont.events;
 
-import harmonised.explosiont.config.TagWrappers;
+import harmonised.explosiont.config.JsonConfig;
 import harmonised.explosiont.util.BlackList;
 import net.minecraft.entity.monster.CreeperEntity;
-import net.minecraftforge.common.util.Constants;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
 import net.minecraft.block.Block;
@@ -13,7 +12,6 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import net.minecraftforge.event.world.ExplosionEvent;
 
@@ -21,6 +19,7 @@ import java.util.*;
 
 public class ExplosionHandler
 {
+    public static Filter filterType = Config.config.filterType.get() ? Filter.WHITELIST : Filter.BLACKLIST;
     private static final boolean ExplosionHealingEnabled = Config.config.ExplosionHealingEnabled.get();
     private static final boolean OnlyHealCreepers = Config.config.OnlyHealCreepers.get();
     private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
@@ -28,6 +27,7 @@ public class ExplosionHandler
 
     public static void handleExplosion( ExplosionEvent.Detonate event )
     {
+        JsonConfig.init();
         if( ExplosionHealingEnabled )
         {
             if( OnlyHealCreepers && !( event.getExplosion().getDamageSource().getTrueSource() instanceof CreeperEntity) )
@@ -64,8 +64,6 @@ public class ExplosionHandler
                     BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
                     blocks.add( blockInfo );
                     i++;
-
-                    System.out.println( TagWrappers.isBlockInFilter( block ) );
                 }
             }
 

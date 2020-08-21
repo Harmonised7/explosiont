@@ -57,7 +57,7 @@ public class JsonConfig
     {
         try (
                 InputStream input = new FileInputStream( path );
-                Reader reader = new BufferedReader(new InputStreamReader(input));
+                Reader reader = new BufferedReader( new InputStreamReader( input ) );
         )
         {
             return gson.fromJson( reader, mapType );

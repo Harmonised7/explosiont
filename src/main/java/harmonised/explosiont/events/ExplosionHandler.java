@@ -1,6 +1,7 @@
 package harmonised.explosiont.events;
 
 import harmonised.explosiont.util.BlackList;
+import harmonised.explosiont.util.RegistryHelper;
 import net.minecraft.entity.monster.CreeperEntity;
 import net.minecraftforge.common.util.Constants;
 import harmonised.explosiont.config.Config;
@@ -32,7 +33,7 @@ public class ExplosionHandler
                 return;
             List<BlockInfo> blocks = new ArrayList<>();
             World world = event.getWorld();
-            ResourceLocation dimResLoc = world.func_234922_V_().func_240901_a_();
+            ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
 
             if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
                 ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );

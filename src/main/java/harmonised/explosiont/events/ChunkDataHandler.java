@@ -1,10 +1,12 @@
 package harmonised.explosiont.events;
 
 import harmonised.explosiont.util.BlockInfo;
+import harmonised.explosiont.util.RegistryHelper;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.World;
 import net.minecraftforge.event.world.ChunkDataEvent;
 
 import java.util.*;
@@ -25,7 +27,8 @@ public class ChunkDataHandler
         {
             if( levelNBT.contains( "blocksToHeal" ) )
             {
-                ResourceLocation dimResLoc = event.getWorld().getWorld().func_234922_V_().func_240901_a_();
+                World world = (World) event.getWorld();
+                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
                 if( !toHealDimMap.containsKey( dimResLoc ) )
                     toHealDimMap.put( dimResLoc, new HashMap<>() );
                 CompoundNBT blocksToHealNBT = ( (CompoundNBT) levelNBT.get( "blocksToHeal" ) );
@@ -60,7 +63,8 @@ public class ChunkDataHandler
 
     public static void handleChunkDataSave( ChunkDataEvent.Save event )
     {
-        ResourceLocation dimResLoc = event.getWorld().getWorld().func_234922_V_().func_240901_a_();
+        World world = (World) event.getWorld();
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
 
         if( toHealDimMap.containsKey( dimResLoc ) )
         {

@@ -27,7 +27,7 @@ public class TryCatchFireHandler
             BlockState state = world.getBlockState( pos );
             if( !BlackList.checkBlock( state.getBlock().getRegistryName().toString() ) )
             {
-                ResourceLocation dimResLoc = world.func_234922_V_().func_240901_a_();
+                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
                 TileEntity tileEntity = world.getTileEntity(pos);
 
                 if (!ChunkDataHandler.toHealDimMap.containsKey(dimResLoc))

@@ -1,6 +1,7 @@
 modLoader="javafml"
        loaderVersion="[31.1,)"
 
+        license="All rights reserved"
        [[mods]]
            modId="explosiont"
            version="${file.jarVersion}"

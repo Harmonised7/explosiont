@@ -2,6 +2,7 @@ package harmonised.explosiont.events;
 
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
+import harmonised.explosiont.util.RegistryHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.GrassBlock;
@@ -44,16 +45,16 @@ public class WorldTickHandler
 //        {
 //            System.out.println( a.getUniqueID() + " " + a.getName().getString() );
 //        });
-        ResourceLocation dimResLoc = ( event.world.func_234922_V_().func_240901_a_() );
+        World world = event.world;
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
         if( !dimForceHeal.containsKey( dimResLoc ) )
             dimForceHeal.put( dimResLoc, new HashSet<>() );
-        World world = event.world;
         boolean forceHeal;
         if( !dimWasDay.containsKey( dimResLoc ) )
             dimWasDay.put( dimResLoc, isDayTime( world ) );
-        if( !ChunkDataHandler.toHealDimMap.containsKey( world.func_234922_V_().func_240901_a_() ) )
-            ChunkDataHandler.toHealDimMap.put( world.func_234922_V_().func_240901_a_(), new HashMap<>() );
-        for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( world.func_234922_V_().func_240901_a_() ).entrySet() )
+        if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
+            ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
+        for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( dimResLoc ).entrySet() )
         {
             forceHeal = dimForceHeal.get( dimResLoc ).contains( entry.getKey() );
             List<BlockInfo> blocksToHeal = entry.getValue();
@@ -89,12 +90,12 @@ public class WorldTickHandler
 
     private static boolean isDayTime( World world )
     {
-        return world.getServer().getWorld( World.field_234918_g_ ).isDaytime();
+        return world.getServer().getWorld( World.OVERWORLD ).isDaytime();
     }
 
     private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
     {
-       ResourceLocation dimResLoc = world.func_234922_V_().func_240901_a_();
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
 
         if( blocksToHeal.size() > 0 )
         {
@@ -170,13 +171,13 @@ public class WorldTickHandler
 
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
-            if( blockInfo.state.func_235901_b_( GrassBlock.SNOWY ) )
+            if( blockInfo.state.contains( GrassBlock.SNOWY ) )
                 blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-            if( blockInfo.state.func_235901_b_( LeavesBlock.DISTANCE ) )
+            if( blockInfo.state.contains( LeavesBlock.DISTANCE ) )
                 blockInfo.state = blockInfo.state.with( LeavesBlock.DISTANCE, 1 );
             world.setBlockState( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
-                world.setTileEntity( pos, TileEntity.readTileEntity( blockInfo.state, blockInfo.tileEntityNBT ) );
+                world.setTileEntity( pos, TileEntity.createFromTag( blockInfo.state, blockInfo.tileEntityNBT ) );
 
             world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
             {

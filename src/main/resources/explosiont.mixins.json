@@ -5,9 +5,11 @@
   "refmap": "explosiont.refmap.json",
   "mixins": [
   ],
-  "client":[
+  "server":[
     "FireRemoveBlockMixin",
     "FireSetBlockStateMixin"
+  ],
+  "client":[
   ],
   "injectors": {
     "defaultRequire": 1

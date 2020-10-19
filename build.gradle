@@ -18,7 +18,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: "com.wynprice.cursemaven"
 
-version = '1.16.2-2.4.1'
+version = '1.16.3-2.4.1'
 group = 'harmonised.explosiont'
 archivesBaseName = 'explosiont'
 
@@ -103,7 +103,7 @@ repositories
 
 dependencies
 {
-    minecraft 'net.minecraftforge:forge:1.16.2-33.0.9'
+    minecraft 'net.minecraftforge:forge:1.16.3-34.1.23'
     implementation 'com.google.code.gson:gson:2.8.6'
 
     compile 'org.spongepowered:mixin:0.8'

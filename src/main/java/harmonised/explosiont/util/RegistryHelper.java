@@ -8,13 +8,13 @@ import net.minecraft.world.biome.Biome;
 
 public class RegistryHelper
 {
-    public static ResourceLocation getBiomeResLoc(World world, Biome biome )
+    public static ResourceLocation getBiomeResLoc( Biome biome )
     {
-        return world.getRegistryManager().get( Registry.BIOME_KEY ).getKey( biome );
+        return biome.getRegistryName();
     }
 
-    public static ResourceLocation getDimensionResLoc( World world, DimensionType dimensionType )
+    public static ResourceLocation getDimensionResLoc( World world )
     {
-        return world.getRegistryManager().get( Registry.DIMENSION_TYPE_KEY ).getKey( dimensionType );
+        return world.getDimensionKey().getRegistryName();
     }
 }

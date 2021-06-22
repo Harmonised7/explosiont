@@ -27,8 +27,8 @@ public class TryCatchFireHandler
             BlockState state = world.getBlockState( pos );
             if( !BlackList.checkBlock( state.getBlock().getRegistryName().toString() ) )
             {
-                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
-                TileEntity tileEntity = world.getTileEntity(pos);
+                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
+                TileEntity tileEntity = world.getTileEntity( pos );
 
                 if (!ChunkDataHandler.toHealDimMap.containsKey(dimResLoc))
                     ChunkDataHandler.toHealDimMap.put(dimResLoc, new HashMap<>());
@@ -40,7 +40,7 @@ public class TryCatchFireHandler
                 blocksToHeal.add(new BlockInfo(dimResLoc, state, pos, healDelayFire, 1, tileEntity == null ? null : tileEntity.serializeNBT()));
                 blocksToHeal.sort(Comparator.comparingInt(a -> a.pos.getY()));
 
-                world.setBlockState(pos, Blocks.AIR.getDefaultState());
+                world.setBlockState(pos, Blocks.AIR.getDefaultState() );
             }
         }
     }

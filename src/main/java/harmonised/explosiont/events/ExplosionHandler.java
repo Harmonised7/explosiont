@@ -33,7 +33,7 @@ public class ExplosionHandler
                 return;
             List<BlockInfo> blocks = new ArrayList<>();
             World world = event.getWorld();
-            ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
+            ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
 
             if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
                 ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );

@@ -29,7 +29,7 @@ public class ChunkDataHandler
             if( levelNBT.contains( "blocksToHeal" ) )
             {
                 World world = (World) event.getWorld();
-                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
+                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
                 if( !toHealDimMap.containsKey( dimResLoc ) )
                     toHealDimMap.put( dimResLoc, new HashMap<>() );
                 CompoundNBT blocksToHealNBT = ( (CompoundNBT) levelNBT.get( "blocksToHeal" ) );
@@ -65,7 +65,7 @@ public class ChunkDataHandler
     public static void handleChunkDataSave( ChunkDataEvent.Save event )
     {
         World world = (World) event.getWorld();
-        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
 
         if( toHealDimMap.containsKey( dimResLoc ) )
         {

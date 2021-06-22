@@ -46,7 +46,7 @@ public class WorldTickHandler
 //            System.out.println( a.getUniqueID() + " " + a.getName().getString() );
 //        });
         World world = event.world;
-        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
         if( !dimForceHeal.containsKey( dimResLoc ) )
             dimForceHeal.put( dimResLoc, new HashSet<>() );
         boolean forceHeal;
@@ -95,7 +95,7 @@ public class WorldTickHandler
 
     private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
     {
-        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world, world.getDimension() );
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
 
         if( blocksToHeal.size() > 0 )
         {
@@ -171,13 +171,13 @@ public class WorldTickHandler
 
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
-            if( blockInfo.state.contains( GrassBlock.SNOWY ) )
+            if( blockInfo.state.hasProperty( GrassBlock.SNOWY ) )
                 blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
-            if( blockInfo.state.contains( LeavesBlock.DISTANCE ) )
+            if( blockInfo.state.hasProperty( LeavesBlock.DISTANCE ) )
                 blockInfo.state = blockInfo.state.with( LeavesBlock.DISTANCE, 1 );
             world.setBlockState( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
-                world.setTileEntity( pos, TileEntity.createFromTag( blockInfo.state, blockInfo.tileEntityNBT ) );
+                world.setTileEntity( pos, TileEntity.readTileEntity( blockInfo.state, blockInfo.tileEntityNBT ) );
 
             world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
             {

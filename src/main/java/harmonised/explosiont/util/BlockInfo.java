@@ -15,6 +15,7 @@ public class BlockInfo
     public CompoundNBT tileEntityNBT;
     public int ticksLeft;
     public int type;
+    public boolean forceHeal = false;
 
     public BlockInfo( ResourceLocation dimResLoc, BlockState state, BlockPos blockPos, int ticksLeft, int type, @Nullable CompoundNBT tileEntityNBT )
     {

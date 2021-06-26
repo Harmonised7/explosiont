@@ -128,7 +128,7 @@ public class WorldTickHandler
             toHeal = (int) ( dimLastHeal.get( dimResLoc ).get( type ) / cost );
             dimLastHeal.get( dimResLoc ).replace( type, dimLastHeal.get( dimResLoc ).get( type ) % cost );  //take away cost for each block
 
-            int index = -1;
+            int index = blocksToHeal.size() - 1;
             BlockInfo blockInfo;
             ChunkPos chunkPos;
             boolean chunkExists;
@@ -136,7 +136,7 @@ public class WorldTickHandler
 
             while( healed < toHeal || forceHeal )
             {
-                if( blocksToHeal.size() > ++index )
+                if( index >= 0 )
                 {
                     blockInfo = blocksToHeal.get( index );
                     chunkPos = new ChunkPos( blockInfo.pos );
@@ -151,6 +151,7 @@ public class WorldTickHandler
                             healed++;
                         }
                     }
+                    index--;
                 }
                 else
                     break;

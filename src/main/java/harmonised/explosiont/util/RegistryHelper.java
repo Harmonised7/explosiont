@@ -15,6 +15,6 @@ public class RegistryHelper
 
     public static ResourceLocation getDimensionResLoc( World world )
     {
-        return world.getDimensionKey().getRegistryName();
+        return world.getDimensionKey().getLocation();
     }
 }

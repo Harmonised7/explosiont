@@ -70,9 +70,9 @@ public class ChunkDataHandler
         {
             Map<Integer, List<BlockInfo>> toHealTypeMap = toHealDimMap.get(dimResLoc);
 
+            if(!event.getData().contains("Level"))
+                event.getData().put("Level", new CompoundTag());
             CompoundTag levelNBT = (CompoundTag) event.getData().get("Level");
-            if(levelNBT == null)
-                return;
 
             List<BlockInfo> chunkBlocksToHeal = new ArrayList<>();
             ChunkPos chunkPos = event.getChunk().getPos();

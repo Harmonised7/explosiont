@@ -6,13 +6,13 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.ConfigValue;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.config.ModConfig.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 
@@ -22,7 +22,7 @@ public class ConfigHelper
     /** as with the other register method, but the contexts are assumed **/
     public static <T> T register(
             final ModConfig.Type configType,
-            final BiFunction<ForgeConfigSpec.Builder, Subscriber, T> configBuilder )
+            final BiFunction<ForgeConfigSpec.Builder, Subscriber, T> configBuilder)
     {
         return register(ModLoadingContext.get(), FMLJavaModLoadingContext.get(), configType, configBuilder);
     }
@@ -32,19 +32,19 @@ public class ConfigHelper
             final ModLoadingContext modContext,
             final FMLJavaModLoadingContext fmlContext,
             final ModConfig.Type configType,
-            final BiFunction<ForgeConfigSpec.Builder, Subscriber, T> configBuilder )
+            final BiFunction<ForgeConfigSpec.Builder, Subscriber, T> configBuilder)
     {
         final List<ConfigValueListener<?>> subscriptionList = new ArrayList<>();
-        final Pair<T, ForgeConfigSpec> entry = new ForgeConfigSpec.Builder().configure( builder -> configBuilder.apply( builder, getSubscriber( subscriptionList ) ) );
+        final Pair<T, ForgeConfigSpec> entry = new ForgeConfigSpec.Builder().configure(builder -> configBuilder.apply(builder, getSubscriber(subscriptionList)));
         final T config = entry.getLeft();
         final ForgeConfigSpec spec = entry.getRight();
 
-        modContext.registerConfig( configType, spec );
+        modContext.registerConfig(configType, spec);
 
         final Consumer<ModConfigEvent> configUpdate = event ->
         {
-            if( event.getConfig().getSpec() == spec )
-                for( ConfigValueListener<?> value : subscriptionList )
+            if(event.getConfig().getSpec() == spec)
+                for(ConfigValueListener<?> value : subscriptionList)
                     value.update();
         };
 

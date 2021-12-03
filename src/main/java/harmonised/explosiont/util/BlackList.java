@@ -13,23 +13,23 @@ public class BlackList
 
     public static void init()
     {
-        blackList.add( "minecraft:air" );
-        blackList.add( "minecraft:cave_air" );
-        blackList.add( "minecraft:void_air" );
-        blackList.add( "minecraft:fire" );
+        blackList.add("minecraft:air");
+        blackList.add("minecraft:cave_air");
+        blackList.add("minecraft:void_air");
+        blackList.add("minecraft:fire");
 
-        blackList.add( "gravestone:gravestone" );
+        blackList.add("gravestone:gravestone");
     }
 
-    public static boolean checkBlock( String regName )
+    public static boolean checkBlock(String regName)
     {
-        if( BlackList.blackList.contains( regName ) )
+        if(BlackList.blackList.contains(regName))
             return false;
 
-        if( filterType.equals( Filter.BLACKLIST ) && filter.contains( regName ) )
+        if(filterType.equals(Filter.BLACKLIST) && filter.contains(regName))
             return false;
 
-        if( filterType.equals( Filter.WHITELIST ) && !filter.contains( regName ) )
+        if(filterType.equals(Filter.WHITELIST) && !filter.contains(regName))
             return false;
 
         return true;

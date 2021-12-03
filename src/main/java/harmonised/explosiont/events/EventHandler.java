@@ -1,36 +1,34 @@
 package harmonised.explosiont.events;
 
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.world.ChunkDataEvent;
-import net.minecraftforge.event.world.ExplosionEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.*;
+import net.minecraftforge.event.world.*;
+import net.minecraftforge.eventbus.api.*;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber
 public class EventHandler
 {
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void detonation( ExplosionEvent.Detonate event )
+    public static void detonation(ExplosionEvent.Detonate event)
     {
-        ExplosionHandler.handleExplosion( event );
+        ExplosionHandler.handleExplosion(event);
     }
 
     @SubscribeEvent
-    public static void worldTick( TickEvent.WorldTickEvent event )
+    public static void worldTick(TickEvent.WorldTickEvent event)
     {
-        WorldTickHandler.handleWorldTick( event );
+        WorldTickHandler.handleWorldTick(event);
     }
 
     @SubscribeEvent
-    public static void chunkDataLoad( ChunkDataEvent.Load event )
+    public static void chunkDataLoad(ChunkDataEvent.Load event)
     {
-        ChunkDataHandler.handleChunkDataLoad( event );
+        ChunkDataHandler.handleChunkDataLoad(event);
     }
 
     @SubscribeEvent
-    public static void chunkDataSave( ChunkDataEvent.Save event )
+    public static void chunkDataSave(ChunkDataEvent.Save event)
     {
-        ChunkDataHandler.handleChunkDataSave( event );
+        ChunkDataHandler.handleChunkDataSave(event);
     }
 }

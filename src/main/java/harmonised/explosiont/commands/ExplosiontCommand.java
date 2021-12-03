@@ -4,26 +4,26 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import harmonised.explosiont.events.WorldTickHandler;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public class ExplosiontCommand
 {
-    public static void register( CommandDispatcher<CommandSource> dispatcher )
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher)
     {
-        dispatcher.register( Commands.literal( "forceHealAll" )
-                .requires( player -> { return player.hasPermissionLevel( 2 ); })
-                .executes( ExplosiontCommand::forceHealAll ));
+        dispatcher.register(Commands.literal("forceHealAll")
+                .requires(player -> { return player.hasPermission(2); })
+                .executes(ExplosiontCommand::forceHealAll));
     }
 
-    private static int forceHealAll( CommandContext<CommandSource> context )
+    private static int forceHealAll(CommandContext<CommandSourceStack> context)
     {
         try
         {
-            context.getSource().asPlayer().sendStatusMessage( new TranslationTextComponent( "All loaded chunks have been healed" ), false );
+            context.getSource().getPlayerOrException().displayClientMessage(new TranslatableComponent("All loaded chunks have been healed"), false);
         }
-        catch( CommandSyntaxException e )
+        catch(CommandSyntaxException e)
         {
             //not player, it's fine
         }

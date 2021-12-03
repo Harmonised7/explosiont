@@ -2,18 +2,16 @@ package harmonised.explosiont.events;
 
 import harmonised.explosiont.util.BlackList;
 import harmonised.explosiont.util.RegistryHelper;
-import net.minecraft.entity.monster.CreeperEntity;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.event.world.ExplosionEvent;
 
 import java.util.*;
@@ -25,68 +23,68 @@ public class ExplosionHandler
     private static final int healDelayExplosion = Config.config.healDelayExplosion.get();
     private static final double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
 
-    public static void handleExplosion( ExplosionEvent.Detonate event )
+    public static void handleExplosion(ExplosionEvent.Detonate event)
     {
-        if( ExplosionHealingEnabled )
+        if(ExplosionHealingEnabled)
         {
-            if( OnlyHealCreepers && !( event.getExplosion().getDamageSource().getTrueSource() instanceof CreeperEntity) )
+            if(OnlyHealCreepers && !(event.getExplosion().getDamageSource().getDirectEntity() instanceof Creeper))
                 return;
             List<BlockInfo> blocks = new ArrayList<>();
-            World world = event.getWorld();
-            ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
+            Level level = event.getWorld();
+            ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc(level);
 
-            if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
-                ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
-            if( !ChunkDataHandler.toHealDimMap.get( dimResLoc ).containsKey( 0 ) )
-                ChunkDataHandler.toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
+            if(!ChunkDataHandler.toHealDimMap.containsKey(dimResLoc))
+                ChunkDataHandler.toHealDimMap.put(dimResLoc, new HashMap<>());
+            if(!ChunkDataHandler.toHealDimMap.get(dimResLoc).containsKey(0))
+                ChunkDataHandler.toHealDimMap.get(dimResLoc).put(0, new ArrayList<>());
 
-            List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc ).get( 0 );
+            List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get(dimResLoc).get(0);
             int i = 0;
             List<BlockPos> affectedBlocks = event.getAffectedBlocks();
-            affectedBlocks.sort( Comparator.comparingInt( BlockPos::getY ) );
+            affectedBlocks.sort(Comparator.comparingInt(BlockPos::getY));
 
-            for( BlockPos blockPos : affectedBlocks )
+            for(BlockPos blockPos : affectedBlocks)
             {
-                BlockState blockState = world.getBlockState( blockPos );
+                BlockState blockState = level.getBlockState(blockPos);
                 Block block = blockState.getBlock();
 
-                if( BlackList.checkBlock( block.getRegistryName().toString() ) && world.getBlockState( blockPos ).canDropFromExplosion( world, blockPos, event.getExplosion() ) )
+                if(BlackList.checkBlock(block.getRegistryName().toString()) && level.getBlockState(blockPos).canDropFromExplosion(level, blockPos, event.getExplosion()))
                 {
-                    if( block.equals( Blocks.NETHER_PORTAL ) )
-                        blockState = Blocks.FIRE.getDefaultState();
+                    if(block.equals(Blocks.NETHER_PORTAL))
+                        blockState = Blocks.FIRE.defaultBlockState();
 
-                    TileEntity tileEntity = world.getTileEntity( blockPos );
-                    CompoundNBT tileEntityNBT = null;
-                    if( tileEntity != null )
-                        tileEntityNBT = tileEntity.serializeNBT();
+                    BlockEntity blockEntity = level.getBlockEntity(blockPos);
+                    CompoundTag tileEntityNBT = null;
+                    if(blockEntity != null)
+                        tileEntityNBT = blockEntity.serializeNBT();
 
-                    BlockInfo blockInfo = new BlockInfo( dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT );
-                    blocks.add( blockInfo );
+                    BlockInfo blockInfo = new BlockInfo(dimResLoc, blockState, blockPos, (int) (healDelayExplosion + ticksPerHealExplosion * i), 0, tileEntityNBT);
+                    blocks.add(blockInfo);
                     i++;
                 }
             }
 
-            blocks.forEach( info ->     //yes updates
+            blocks.forEach(info ->     //yes updates
             {
-                if( !info.state.isSolid() )
+                if(!info.state.canOcclude())
                 {
-                    world.removeTileEntity( info.pos );
-                    world.setBlockState( info.pos, Blocks.AIR.getDefaultState() );
+                    level.removeBlockEntity(info.pos);
+                    level.setBlockAndUpdate(info.pos, Blocks.AIR.defaultBlockState());
                 }
             });
 
-            blocks.forEach( info ->     //yes updates
+            blocks.forEach(info ->     //yes updates
             {
-                if( info.state.isSolid() )
+                if(info.state.canOcclude())
                 {
-                    world.removeTileEntity( info.pos );
-                    world.setBlockState( info.pos, Blocks.AIR.getDefaultState() );
+                    level.removeBlockEntity(info.pos);
+                    level.setBlockAndUpdate(info.pos, Blocks.AIR.defaultBlockState());
                 }
             });
 
-            blocksToHeal.removeAll( blocks );
-            blocksToHeal.addAll( blocks );
-            blocksToHeal.sort( Comparator.comparingInt( info -> info.pos.getY() ) );
+            blocksToHeal.removeAll(blocks);
+            blocksToHeal.addAll(blocks);
+            blocksToHeal.sort(Comparator.comparingInt(info -> info.pos.getY()));
         }
     }
 }

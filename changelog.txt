@@ -214,7 +214,7 @@ Build: 1.15.2-31.1.70 - Sun May 03 20:27:39 GMT 2020
 		Fix vanilla loot table resource leak. (#6622)
 
 	LordMonoxide:
-		Fixed ChunkDataEvent.Save being fired with a null world if chunk isn't fully generated when unloaded. (#6628)
+		Fixed ChunkDataEvent.Save being fired with a null level if chunk isn't fully generated when unloaded. (#6628)
 
 =========
 Build: 1.15.2-31.1.67 - Sun May 03 20:21:40 GMT 2020

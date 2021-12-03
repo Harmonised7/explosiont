@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import harmonised.explosiont.ExplosiontMod;
 import harmonised.explosiont.util.BlackList;
 import harmonised.explosiont.util.LogHandler;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.io.IOUtils;
@@ -29,38 +29,38 @@ public class JsonConfig
     {
         try
         {
-            File dataFile = FMLPaths.CONFIGDIR.get().resolve( dataPath ).toFile();
-            if( !dataFile.exists() )
-                createData( dataFile );
-            data = readFromFile( dataFile.getPath() );
+            File dataFile = FMLPaths.CONFIGDIR.get().resolve(dataPath).toFile();
+            if(!dataFile.exists())
+                createData(dataFile);
+            data = readFromFile(dataFile.getPath());
 
-            if( data.containsKey( "filter" ) )
+            if(data.containsKey("filter"))
             {
                 BlackList.filter = new HashSet<>();
 
-                for( String item : data.get( "filter" ) )
+                for(String item : data.get("filter"))
                 {
-                    if( ForgeRegistries.ITEMS.containsKey( new ResourceLocation( item ) ) )
-                        BlackList.filter.add( item );
+                    if(ForgeRegistries.ITEMS.containsKey(new ResourceLocation(item)))
+                        BlackList.filter.add(item);
                     else
-                        LogHandler.LOGGER.info( "Explosion't filter invalid block: \"" + item + "\"" );
+                        LogHandler.LOGGER.info("Explosion't filter invalid block: \"" + item + "\"");
                 }
             }
         }
-        catch( Exception e )
+        catch(Exception e)
         {
-            System.out.println( e );
+            System.out.println(e);
         }
     }
 
-    public static Map<String, Set<String>> readFromFile( String path )
+    public static Map<String, Set<String>> readFromFile(String path)
     {
         try (
-                InputStream input = new FileInputStream( path );
-                Reader reader = new BufferedReader( new InputStreamReader( input ) );
-        )
+                InputStream input = new FileInputStream(path);
+                Reader reader = new BufferedReader(new InputStreamReader(input));
+       )
         {
-            return gson.fromJson( reader, mapType );
+            return gson.fromJson(reader, mapType);
         }
         catch (IOException e)
         {
@@ -70,26 +70,26 @@ public class JsonConfig
         }
     }
 
-    private static void createData( File dataFile )
+    private static void createData(File dataFile)
     {
         try     //create template data file
         {
             dataFile.getParentFile().mkdir();
             dataFile.createNewFile();
         }
-        catch( IOException e )
+        catch(IOException e)
         {
-            LogHandler.LOGGER.error( "Could not create template json config!", dataFile.getPath(), e );
+            LogHandler.LOGGER.error("Could not create template json config!", dataFile.getPath(), e);
         }
 
-        try( InputStream inputStream = ExplosiontMod.class.getResourceAsStream( hardDataPath );
-            FileOutputStream outputStream = new FileOutputStream( dataFile ); )
+        try(InputStream inputStream = ExplosiontMod.class.getResourceAsStream(hardDataPath);
+            FileOutputStream outputStream = new FileOutputStream(dataFile);)
         {
-            IOUtils.copy( inputStream, outputStream );
+            IOUtils.copy(inputStream, outputStream);
         }
-        catch( IOException e )
+        catch(IOException e)
         {
-            LogHandler.LOGGER.error( "Error copying over default json config to " + dataFile.getPath(), dataFile.getPath(), e );
+            LogHandler.LOGGER.error("Error copying over default json config to " + dataFile.getPath(), dataFile.getPath(), e);
         }
     }
 }

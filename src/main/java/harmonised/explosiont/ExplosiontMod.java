@@ -8,10 +8,9 @@ import harmonised.explosiont.util.BlackList;
 import harmonised.explosiont.util.Reference;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod( Reference.MOD_ID )
@@ -30,7 +29,7 @@ public class ExplosiontMod
         MinecraftForge.EVENT_BUS.register( harmonised.explosiont.events.EventHandler.class );
     }
 
-    private void serverAboutToStart( FMLServerAboutToStartEvent event )
+    private void serverAboutToStart( ServerAboutToStartEvent event )
     {
         BlackList.init();
         JsonConfig.init();

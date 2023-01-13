@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import harmonised.explosiont.ExplosiontMod;
 import harmonised.explosiont.util.BlackList;
 import harmonised.explosiont.util.LogHandler;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.io.IOUtils;

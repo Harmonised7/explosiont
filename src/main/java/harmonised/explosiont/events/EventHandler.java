@@ -1,8 +1,8 @@
 package harmonised.explosiont.events;
 
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.world.ChunkDataEvent;
-import net.minecraftforge.event.world.ExplosionEvent;
+import net.minecraftforge.event.level.ChunkDataEvent;
+import net.minecraftforge.event.level.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -17,9 +17,9 @@ public class EventHandler
     }
 
     @SubscribeEvent
-    public static void worldTick( TickEvent.WorldTickEvent event )
+    public static void worldTick( TickEvent.LevelTickEvent event )
     {
-        WorldTickHandler.handleWorldTick( event );
+        WorldTickHandler.handleLevelTick( event );
     }
 
     @SubscribeEvent

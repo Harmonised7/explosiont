@@ -2,12 +2,12 @@ package harmonised.explosiont.util;
 
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.events.ChunkDataHandler;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
@@ -20,15 +20,15 @@ public class TryCatchFireHandler
     private static final boolean FireHealingEnabled = Config.config.FireHealingEnabled.get();
     private static final int healDelayFire = Config.config.healDelayFire.get();
 
-    public static void handle(World world, BlockPos pos, CallbackInfo info )
+    public static void handle(Level level, BlockPos pos, CallbackInfo info )
     {
         if( FireHealingEnabled )
         {
-            BlockState state = world.getBlockState( pos );
-            if( !BlackList.checkBlock( state.getBlock().getRegistryName().toString() ) )
+            final BlockState state = level.getBlockState( pos );
+            if( !BlackList.checkBlock( RegistryHelper.getBlockResLoc(state).toString() ) )
             {
-                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
-                TileEntity tileEntity = world.getTileEntity( pos );
+                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
+                BlockEntity tileEntity = level.getBlockEntity( pos );
 
                 if (!ChunkDataHandler.toHealDimMap.containsKey(dimResLoc))
                     ChunkDataHandler.toHealDimMap.put(dimResLoc, new HashMap<>());
@@ -40,7 +40,7 @@ public class TryCatchFireHandler
                 blocksToHeal.add(new BlockInfo(dimResLoc, state, pos, healDelayFire, 1, tileEntity == null ? null : tileEntity.serializeNBT()));
                 blocksToHeal.sort(Comparator.comparingInt(a -> a.pos.getY()));
 
-                world.setBlockState(pos, Blocks.AIR.getDefaultState() );
+                level.setBlock(pos, Blocks.AIR.defaultBlockState(), Reference.SET_BLOCK_TAGS );
             }
         }
     }

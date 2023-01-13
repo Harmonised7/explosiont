@@ -3,26 +3,23 @@ package harmonised.explosiont.events;
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
 import harmonised.explosiont.util.RegistryHelper;
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.GrassBlock;
-import net.minecraft.block.LeavesBlock;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.GrassBlock;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.TickEvent;
 
 import java.util.*;
@@ -39,19 +36,19 @@ public class WorldTickHandler
     private static final Integer speedUpTresholdFire = Config.config.speedUpTresholdFire.get();
     private static final boolean onlyHealPastMorning = Config.config.onlyHealPastMorning.get();
 
-    public static void handleWorldTick( TickEvent.WorldTickEvent event )
+    public static void handleLevelTick(TickEvent.LevelTickEvent event )
     {
 //        event.world.getServer().getPlayerList().getPlayers().forEach( a ->
 //        {
 //            System.out.println( a.getUniqueID() + " " + a.getName().getString() );
 //        });
-        World world = event.world;
-        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
+        Level level = event.level;
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
         if( !dimForceHeal.containsKey( dimResLoc ) )
             dimForceHeal.put( dimResLoc, new HashSet<>() );
         boolean forceHeal;
         if( !dimWasDay.containsKey( dimResLoc ) )
-            dimWasDay.put( dimResLoc, isDayTime( world ) );
+            dimWasDay.put( dimResLoc, isDayTime( level ) );
         if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
             ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
         for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( dimResLoc ).entrySet() )
@@ -61,7 +58,7 @@ public class WorldTickHandler
 
             if( onlyHealPastMorning || forceHeal )
             {
-                if( ( !dimWasDay.get( dimResLoc ) && isDayTime( world ) ) || forceHeal )
+                if( ( !dimWasDay.get( dimResLoc ) && isDayTime( level ) ) || forceHeal )
                 {
                     blocksToHeal.forEach( blockToHeal ->
                     {
@@ -80,22 +77,22 @@ public class WorldTickHandler
             if( !dimLastHeal.containsKey( dimResLoc ) )
                 dimLastHeal.put( dimResLoc, new HashMap<>() );
 
-            healBlocks( world, blocksToHeal, entry.getKey(), forceHeal );
+            healBlocks( level, blocksToHeal, entry.getKey(), forceHeal );
             if( blocksToHeal.size() == 0 )
                 dimForceHeal.get( dimResLoc ).remove( entry.getKey() );
         }
 
-        dimWasDay.replace( dimResLoc, isDayTime( world ) );
+        dimWasDay.replace( dimResLoc, isDayTime( level ) );
     }
 
-    private static boolean isDayTime( World world )
+    private static boolean isDayTime( Level level )
     {
-        return world.getServer().getWorld( World.OVERWORLD ).isDaytime();
+        return level.getServer().getLevel( Level.OVERWORLD ).isDay();
     }
 
-    private static void healBlocks( World world, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
+    private static void healBlocks( Level level, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
     {
-        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( world );
+        ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
 
         if( blocksToHeal.size() > 0 )
         {
@@ -140,13 +137,13 @@ public class WorldTickHandler
                 {
                     blockInfo = blocksToHeal.get( index );
                     chunkPos = new ChunkPos( blockInfo.pos );
-                    chunkExists = checkChunkExists( world, chunkPos );
+                    chunkExists = checkChunkExists( level, chunkPos );
 
                     if( chunkExists || forceHeal )
                     {
                         if( blockInfo.ticksLeft < 0 || forceHeal )
                         {
-                            healBlock( world, blockInfo );
+                            healBlock( level, blockInfo );
                             blocksToHeal.remove( blockInfo );
                             healed++;
                         }
@@ -164,56 +161,56 @@ public class WorldTickHandler
         }
     }
 
-    private static void healBlock( World world, BlockInfo blockInfo )
+    private static void healBlock( Level level, BlockInfo blockInfo )
     {
         BlockPos pos = blockInfo.pos;
-        Block block = world.getBlockState(pos).getBlock();
-        FluidState fluidInfo = world.getFluidState(pos);
+        Block block = level.getBlockState(pos).getBlock();
+        FluidState fluidInfo = level.getFluidState(pos);
 
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
             if( blockInfo.state.hasProperty( GrassBlock.SNOWY ) )
-                blockInfo.state = blockInfo.state.with( GrassBlock.SNOWY, false );
+                blockInfo.state = blockInfo.state.trySetValue( GrassBlock.SNOWY, false );
             if( blockInfo.state.hasProperty( LeavesBlock.DISTANCE ) )
-                blockInfo.state = blockInfo.state.with( LeavesBlock.DISTANCE, 1 );
-            world.setBlockState( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
-            if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.size() > 0)
-                world.setTileEntity( pos, TileEntity.readTileEntity( blockInfo.state, blockInfo.tileEntityNBT ) );
+                blockInfo.state = blockInfo.state.trySetValue( LeavesBlock.DISTANCE, 1 );
+            level.setBlock( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
+            if (blockInfo.BlockEntityNBT != null && blockInfo.BlockEntityNBT.size() > 0)
+                level.setBlockEntity( BlockEntity.loadStatic( blockInfo.pos, blockInfo.state, blockInfo.BlockEntityNBT ) );
 
-            world.getEntitiesWithinAABB( Entity.class, new AxisAlignedBB( pos, pos.up().south().east() ) ).forEach( a ->
+            level.getEntitiesOfClass( Entity.class, new AABB( pos, pos.above().south().east() ) ).forEach(a ->
             {
-                BlockPos entityPos = new BlockPos( a.getPositionVec() );
+                BlockPos entityPos = new BlockPos( a.position() );
                 int i = 1;
-                while( world.getBlockState( entityPos.up( i ) ).isSolid() || world.getBlockState( entityPos.up( i + 1 ) ).isSolid() )
+                while( level.getBlockState( entityPos.above( i ) ).canOcclude() || level.getBlockState( entityPos.above( i + 1 ) ).canOcclude() )
                 {
                     i++;
                 }
-                a.setPosition( a.getPositionVec().getX(), a.getPositionVec().y + i, a.getPositionVec().z );
-                world.playSound(null, a.getPositionVec().getX(), a.getPositionVec().getY(), a.getPositionVec().getZ(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.BLOCKS, 0.8F + rand.nextFloat() * 0.4F, 0.9F + rand.nextFloat() * 0.15F );
+                a.setPos( a.position().x, a.position().y + i, a.position().z );
+                level.playSound(null, a.position().x, a.position().y, a.position().z, SoundEvents.CHORUS_FRUIT_TELEPORT, SoundSource.BLOCKS, 0.8F + rand.nextFloat() * 0.4F, 0.9F + rand.nextFloat() * 0.15F );
             });
         }
         else
         {
-            Block.spawnAsEntity(world, pos, new ItemStack(blockInfo.state.getBlock().asItem()));
-            if (blockInfo.tileEntityNBT != null && blockInfo.tileEntityNBT.contains("Items"))
+            level.addFreshEntity(new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(blockInfo.state.getBlock().asItem())));
+            if (blockInfo.BlockEntityNBT != null && blockInfo.BlockEntityNBT.contains("Items"))
             {
-                ListNBT items = (ListNBT) blockInfo.tileEntityNBT.get("Items");
+                ListTag items = (ListTag) blockInfo.BlockEntityNBT.get("Items");
                 if (items != null)
                 {
                     for (int i = 0; i < items.size(); i++)
                     {
-                        Block.spawnAsEntity(world, pos, ItemStack.read(items.getCompound(i)));
+                        level.addFreshEntity(new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), ItemStack.of(items.getCompound(i))));
                     }
                 }
             }
         }
 
-        world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
+        level.playSound(null, pos.getX(), pos.getY(), pos.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.2F + rand.nextFloat() * 0.2F, 0.9F + rand.nextFloat() * 0.15F);
     }
 
-    private static boolean checkChunkExists( World world, ChunkPos chunkPos )
+    private static boolean checkChunkExists( Level level, ChunkPos chunkPos )
     {
-        return world.chunkExists( chunkPos.x, chunkPos.z );
+        return level.hasChunk( chunkPos.x, chunkPos.z );
     }
 
     public static void forceAllHeal()

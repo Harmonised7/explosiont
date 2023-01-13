@@ -7,7 +7,7 @@
   ],
   "server":[
     "FireRemoveBlockMixin",
-    "FireSetBlockStateMixin"
+    "FiresetBlockMixin"
   ],
   "client":[
   ],

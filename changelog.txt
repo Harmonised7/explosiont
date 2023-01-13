@@ -645,7 +645,7 @@ Build: 1.15.2-31.0.11 - Wed Jan 29 21:18:05 GMT 2020
 =========
 Build: 1.15.2-31.0.9 - Wed Jan 29 21:11:24 GMT 2020
 	40495288+Yamahari:
-		Defer material getting for ChestTileEntityRenderer into seperate function (#6465)
+		Defer material getting for ChestBlockEntityRenderer into seperate function (#6465)
 
 =========
 Build: 1.15.2-31.0.8 - Wed Jan 29 21:04:44 GMT 2020
@@ -721,7 +721,7 @@ Build: 1.15.1-30.0.48 - Wed Jan 22 19:30:35 GMT 2020
 		Fix Widget Foreground Color not allowing pure black (#6460)
 
 	12281102+Aeltumn:
-		Updated method names referencing ItemStackTileEntityRenderer (#6461)
+		Updated method names referencing ItemStackBlockEntityRenderer (#6461)
 
 =========
 Build: 1.15.1-30.0.43 - Wed Jan 22 19:22:15 GMT 2020
@@ -871,13 +871,13 @@ Build: 1.15.1-30.0.18 - Sun Dec 29 16:16:44 GMT 2019
 	David Quintana:
 		Fix LightUtil.unpack to set the 4th component to 1 when expanding an xyz position into a 4-component vector.
 		Add TRSRTransformer test mod.
-		Fix signature of the bindTileEntityRenderer method, to account for covariance.
+		Fix signature of the bindBlockEntityRenderer method, to account for covariance.
 
 =========
 Build: 1.15.1-30.0.17 - Sun Dec 29 01:16:20 GMT 2019
 	David Quintana:
 		More model/rendering fixes:
-		- Breaking change: Change ClientRegistry.bindTileEntityRenderer to a factory, so mods don't have to manually specify the dispatcher.
+		- Breaking change: Change ClientRegistry.bindBlockEntityRenderer to a factory, so mods don't have to manually specify the dispatcher.
 		- Breaking change: Delete obsolete SimpleModelState (the class was duplicated by mistake, see SimpleModelTransform) and ICustomModelState (part of the old loader API).
 		- Breaking change: Rename getTextureDependencies to getTextures, for consistency.
 		- Reinstate the getRenderLayer method, fixed appropriately to return the new RenderType value.

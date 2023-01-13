@@ -10,7 +10,13 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.level.ChunkDataEvent;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.ArrayList;
+
+import harmonised.explosiont.util.Util;
 
 public class ChunkDataHandler
 {
@@ -58,7 +64,7 @@ public class ChunkDataHandler
                     blocksToHeal = toHealDimMap.get( dimResLoc ).get( entry.getKey() );
                     blocksToHeal.removeAll( entry.getValue() );
                     blocksToHeal.addAll( entry.getValue() );
-                    blocksToHeal.sort( Comparator.comparingInt( blockInfo -> blockInfo.pos.getY() ) );
+                    blocksToHeal.sort(Util.blockInfoComparator);
                 }
             }
         }

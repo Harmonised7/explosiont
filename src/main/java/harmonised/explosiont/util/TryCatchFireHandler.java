@@ -38,7 +38,7 @@ public class TryCatchFireHandler
                 List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get(dimResLoc).get(1);
 
                 blocksToHeal.add(new BlockInfo(dimResLoc, state, pos, healDelayFire, 1, tileEntity == null ? null : tileEntity.serializeNBT()));
-                blocksToHeal.sort(Comparator.comparingInt(a -> a.pos.getY()));
+                blocksToHeal.sort(Util.blockInfoComparator);
 
                 level.setBlock(pos, Blocks.AIR.defaultBlockState(), Reference.SET_BLOCK_TAGS );
             }

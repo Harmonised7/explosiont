@@ -1,12 +1,9 @@
 package harmonised.explosiont.events;
 
-import harmonised.explosiont.util.BlackList;
-import harmonised.explosiont.util.Reference;
-import harmonised.explosiont.util.RegistryHelper;
+import harmonised.explosiont.util.*;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.level.block.Block;
 import harmonised.explosiont.config.Config;
-import harmonised.explosiont.util.BlockInfo;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.nbt.CompoundTag;
@@ -43,7 +40,7 @@ public class ExplosionHandler
             final List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc ).get( 0 );
             int i = 0;
             final List<BlockPos> affectedBlocks = event.getAffectedBlocks();
-            affectedBlocks.sort( Comparator.comparingInt( BlockPos::getY ) );
+            affectedBlocks.sort(Util.blockPosComparator);
 
             for( BlockPos blockPos : affectedBlocks )
             {
@@ -86,7 +83,7 @@ public class ExplosionHandler
 
             blocksToHeal.removeAll( blocks );
             blocksToHeal.addAll( blocks );
-            blocksToHeal.sort( Comparator.comparingInt( info -> info.pos.getY() ) );
+            blocksToHeal.sort(Util.blockInfoComparator);
         }
     }
 }

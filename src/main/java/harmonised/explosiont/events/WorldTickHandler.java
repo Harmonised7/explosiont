@@ -48,7 +48,7 @@ public class WorldTickHandler
             dimForceHeal.put( dimResLoc, new HashSet<>() );
         boolean forceHeal;
         if( !dimWasDay.containsKey( dimResLoc ) )
-            dimWasDay.put( dimResLoc, isDayTime( level ) );
+            dimWasDay.put( dimResLoc, level.isDay() );
         if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
             ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
         for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( dimResLoc ).entrySet() )
@@ -58,7 +58,7 @@ public class WorldTickHandler
 
             if( onlyHealPastMorning || forceHeal )
             {
-                if( ( !dimWasDay.get( dimResLoc ) && isDayTime( level ) ) || forceHeal )
+                if( ( !dimWasDay.get( dimResLoc ) && level.isDay() ) || forceHeal )
                 {
                     blocksToHeal.forEach( blockToHeal ->
                     {
@@ -82,12 +82,7 @@ public class WorldTickHandler
                 dimForceHeal.get( dimResLoc ).remove( entry.getKey() );
         }
 
-        dimWasDay.replace( dimResLoc, isDayTime( level ) );
-    }
-
-    private static boolean isDayTime( Level level )
-    {
-        return level.getServer().getLevel( Level.OVERWORLD ).isDay();
+        dimWasDay.replace( dimResLoc, level.isDay() );
     }
 
     private static void healBlocks( Level level, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )

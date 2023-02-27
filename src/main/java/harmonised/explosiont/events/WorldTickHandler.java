@@ -48,7 +48,7 @@ public class WorldTickHandler
             dimForceHeal.put( dimResLoc, new HashSet<>() );
         boolean forceHeal;
         if( !dimWasDay.containsKey( dimResLoc ) )
-            dimWasDay.put( dimResLoc, isDayTime( level ) );
+            dimWasDay.put( dimResLoc, level.isDay() );
         if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
             ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
         for( Map.Entry<Integer, List<BlockInfo>> entry : ChunkDataHandler.toHealDimMap.get( dimResLoc ).entrySet() )
@@ -58,7 +58,7 @@ public class WorldTickHandler
 
             if( onlyHealPastMorning || forceHeal )
             {
-                if( ( !dimWasDay.get( dimResLoc ) && isDayTime( level ) ) || forceHeal )
+                if( ( !dimWasDay.get( dimResLoc ) && level.isDay() ) || forceHeal )
                 {
                     blocksToHeal.forEach( blockToHeal ->
                     {
@@ -82,12 +82,7 @@ public class WorldTickHandler
                 dimForceHeal.get( dimResLoc ).remove( entry.getKey() );
         }
 
-        dimWasDay.replace( dimResLoc, isDayTime( level ) );
-    }
-
-    private static boolean isDayTime( Level level )
-    {
-        return level.getServer().getLevel( Level.OVERWORLD ).isDay();
+        dimWasDay.replace( dimResLoc, level.isDay() );
     }
 
     private static void healBlocks( Level level, List<BlockInfo> blocksToHeal, int type, boolean forceHeal )
@@ -170,9 +165,9 @@ public class WorldTickHandler
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
             if( blockInfo.state.hasProperty( GrassBlock.SNOWY ) )
-                blockInfo.state = blockInfo.state.trySetValue( GrassBlock.SNOWY, false );
+                blockInfo.state = blockInfo.state.setValue( GrassBlock.SNOWY, false );
             if( blockInfo.state.hasProperty( LeavesBlock.DISTANCE ) )
-                blockInfo.state = blockInfo.state.trySetValue( LeavesBlock.DISTANCE, 1 );
+                blockInfo.state = blockInfo.state.setValue( LeavesBlock.DISTANCE, 1 );
             level.setBlock( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.BlockEntityNBT != null && blockInfo.BlockEntityNBT.size() > 0)
                 level.setBlockEntity( BlockEntity.loadStatic( blockInfo.pos, blockInfo.state, blockInfo.BlockEntityNBT ) );

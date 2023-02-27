@@ -1,18 +1,29 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
 // Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
+apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'maven-publish'
+apply plugin: 'eclipse'
 
-version = '1.19.3-2.4.5'
+mixin {
+    config "explosiont.mixins.json"
+    add sourceSets.main, "explosiont.refmap.json"
+    disableEclipseAddon = true
+
+    debug.export = true
+}
+
+version = '1.19.2-2.4.5'
 group = 'harmonised.exlosiont' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Explosiont'
 
@@ -33,7 +44,7 @@ repositories {
 }
 
 minecraft {
-    mappings channel: 'official', version: '1.19.3'
+    mappings channel: 'official', version: '1.19.2'
     
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
@@ -64,13 +75,9 @@ minecraft {
 
         data {
             workingDirectory project.file('run')
-
             property 'forge.logging.markers', 'REGISTRIES'
-
             property 'forge.logging.console.level', 'debug'
-
             args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
             mods {
                 examplemod {
                     source sourceSets.main
@@ -84,7 +91,7 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.3-44.1.5'
+    minecraft 'net.minecraftforge:forge:1.19.2-43.2.6'
 }
 
 jar {

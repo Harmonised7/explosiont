@@ -2,14 +2,12 @@ package harmonised.explosiont.events;
 
 import harmonised.explosiont.util.BlockInfo;
 import harmonised.explosiont.util.RegistryHelper;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.level.ChunkDataEvent;
-
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -52,7 +50,7 @@ public class ChunkDataHandler
 
                     if( !blocksToAddTypes.containsKey( entry.getInt( "type" ) ) )
                         blocksToAddTypes.put( entry.getInt( "type" ), new ArrayList<>() );
-                    blocksToAddTypes.get( entry.getInt( "type" ) ).add( new BlockInfo( dimResLoc, NbtUtils.readBlockState( level.holderLookup(Registries.BLOCK), entry.getCompound( "state" ) ), NbtUtils.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "BlockEntity" ) ) );
+                    blocksToAddTypes.get( entry.getInt( "type" ) ).add( new BlockInfo( dimResLoc, NbtUtils.readBlockState(entry.getCompound( "state" ) ), NbtUtils.readBlockPos( entry.getCompound( "pos" ) ), entry.getInt( "ticksLeft" ), entry.getInt( "type" ), entry.getCompound( "BlockEntity" ) ) );
                 });
 
                 List<BlockInfo> blocksToHeal;

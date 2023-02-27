@@ -170,9 +170,9 @@ public class WorldTickHandler
         if ( block.equals( Blocks.AIR ) || block.equals( Blocks.CAVE_AIR ) || block.equals( Blocks.FIRE ) || ( !fluidInfo.isEmpty() && !fluidInfo.isSource() ) )
         {
             if( blockInfo.state.hasProperty( GrassBlock.SNOWY ) )
-                blockInfo.state = blockInfo.state.trySetValue( GrassBlock.SNOWY, false );
+                blockInfo.state = blockInfo.state.setValue( GrassBlock.SNOWY, false );
             if( blockInfo.state.hasProperty( LeavesBlock.DISTANCE ) )
-                blockInfo.state = blockInfo.state.trySetValue( LeavesBlock.DISTANCE, 1 );
+                blockInfo.state = blockInfo.state.setValue( LeavesBlock.DISTANCE, 1 );
             level.setBlock( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
             if (blockInfo.BlockEntityNBT != null && blockInfo.BlockEntityNBT.size() > 0)
                 level.setBlockEntity( BlockEntity.loadStatic( blockInfo.pos, blockInfo.state, blockInfo.BlockEntityNBT ) );

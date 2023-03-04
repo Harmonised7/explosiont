@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TryCatchFireHandler
 {
@@ -31,7 +32,7 @@ public class TryCatchFireHandler
                 BlockEntity tileEntity = level.getBlockEntity( pos );
 
                 if (!ChunkDataHandler.toHealDimMap.containsKey(dimResLoc))
-                    ChunkDataHandler.toHealDimMap.put(dimResLoc, new HashMap<>());
+                    ChunkDataHandler.toHealDimMap.put(dimResLoc, new ConcurrentHashMap<>());
                 if (!ChunkDataHandler.toHealDimMap.get(dimResLoc).containsKey(1))
                     ChunkDataHandler.toHealDimMap.get(dimResLoc).put(1, new ArrayList<>());
 

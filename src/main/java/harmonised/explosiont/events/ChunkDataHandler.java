@@ -13,16 +13,17 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 import harmonised.explosiont.util.Util;
 
 public class ChunkDataHandler
 {
-    public static Map<ResourceLocation, Map<Integer, List<BlockInfo>>> toHealDimMap = new HashMap<>();
+    public static ConcurrentHashMap<ResourceLocation, Map<Integer, List<BlockInfo>>> toHealDimMap = new ConcurrentHashMap<>();
 
     public static void init()
     {
-        toHealDimMap = new HashMap<>();
+        toHealDimMap = new ConcurrentHashMap<>();
     }
     
     public static void handleChunkDataLoad( ChunkDataEvent.Load event )
@@ -37,11 +38,11 @@ public class ChunkDataHandler
                 final Level level = (Level) event.getLevel();
                 final ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
                 if( !toHealDimMap.containsKey( dimResLoc ) )
-                    toHealDimMap.put( dimResLoc, new HashMap<>() );
+                    toHealDimMap.put( dimResLoc, new ConcurrentHashMap<>() );
                 CompoundTag blocksToHealNBT = ( (CompoundTag) levelNBT.get( "blocksToHeal" ) );
                 if( blocksToHealNBT == null )
                     return;
-                final Map<Integer, List<BlockInfo>> blocksToAddTypes = new HashMap<>();
+                final Map<Integer, List<BlockInfo>> blocksToAddTypes = new ConcurrentHashMap<>();
                 final Set<String> keySet = blocksToHealNBT.getAllKeys();
 
                 keySet.forEach( key ->

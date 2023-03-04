@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.event.level.ExplosionEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ExplosionHandler
 {
@@ -33,7 +34,7 @@ public class ExplosionHandler
             final ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
 
             if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
-                ChunkDataHandler.toHealDimMap.put( dimResLoc, new HashMap<>() );
+                ChunkDataHandler.toHealDimMap.put( dimResLoc, new ConcurrentHashMap<>() );
             if( !ChunkDataHandler.toHealDimMap.get( dimResLoc ).containsKey( 0 ) )
                 ChunkDataHandler.toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
 

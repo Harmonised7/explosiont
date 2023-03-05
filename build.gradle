@@ -23,7 +23,7 @@ mixin {
     debug.export = true
 }
 
-version = '1.19.2-2.4.5'
+version = '1.19.2-2.4.6'
 group = 'harmonised.exlosiont' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Explosiont'
 

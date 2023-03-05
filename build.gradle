@@ -16,7 +16,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = '1.18.2-2.5'
+version = '1.18.2-2.5.1'
 group = 'harmonised.exlosiont' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'Explosiont'
 

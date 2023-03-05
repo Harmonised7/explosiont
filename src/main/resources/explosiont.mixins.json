@@ -4,12 +4,11 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "explosiont.refmap.json",
   "mixins": [
+    "FireBlockMixin"
   ],
-  "server":[
-    "FireRemoveBlockMixin",
-    "FiresetBlockMixin"
+  "server": [
   ],
-  "client":[
+  "client": [
   ],
   "injectors": {
     "defaultRequire": 1

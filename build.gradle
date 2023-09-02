@@ -20,44 +20,28 @@ minecraft
 {
     mappings channel: mapping_channel, version: mapping_version
     copyIdeResources = true
-    runs
-    {
-        // applies to all the run configs below
-        configureEach
-        {
-            workingDirectory project.file('run')
+    runs {
+        configureEach {
+            jvmArg "-Dterminal.ansi=true"
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-
-            mods
-            {
-                "${mod_id}"
-                {
+            mods {
+                "${mod_id}" {
                     source sourceSets.main
                 }
             }
         }
 
-        client
-        {
-            property 'forge.enabledGameTestNamespaces', mod_id
+        client {
+            workingDirectory project.file('run/client')
         }
 
-        server
-        {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
+        server {
+            workingDirectory project.file('run/server')
         }
 
-        gameTestServer
-        {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        data
-        {
-            workingDirectory project.file('run-data')
-
+        data {
+            workingDirectory project.file('run/client')
             args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
         }
     }
@@ -65,28 +49,9 @@ minecraft
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-repositories
-{
-}
-
 dependencies
 {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-    // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
-    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-common-api:${jei_version}")
-    // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-forge-api:${jei_version}")
-    // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
-
-    // Example mod dependency using a mod jar from ./libs with a flat dir repository
-    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
-    // The group id is ignored when searching -- in this case, it is "blank"
-    // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
-
-    // For more info:
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
 }
 
 tasks.named('processResources', ProcessResources).configure {
@@ -123,12 +88,6 @@ tasks.named('jar', Jar).configure
     finalizedBy 'reobfJar'
 }
 
-// However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing:
-// tasks.named('publish').configure {
-//     dependsOn 'reobfJar'
-// }
-
-// Example configuration to allow publishing using the maven-publish plugin
 publishing
 {
     publications

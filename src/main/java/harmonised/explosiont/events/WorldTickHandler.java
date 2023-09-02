@@ -4,6 +4,8 @@ import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
 import harmonised.explosiont.util.RegistryHelper;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -33,16 +35,12 @@ public class WorldTickHandler
     private static final ConcurrentHashMap<ResourceLocation, Boolean> dimWasDay = new ConcurrentHashMap<>();
     private static final Double ticksPerHealExplosion = Config.config.ticksPerHealExplosion.get();
     private static final Double ticksPerHealFire = Config.config.ticksPerHealFire.get();
-    private static final Integer speedUpTresholdExplosion = Config.config.speedUpTresholdExplosion.get();
-    private static final Integer speedUpTresholdFire = Config.config.speedUpTresholdFire.get();
+    private static final Integer speedUpThresholdExplosion = Config.config.speedUpTresholdExplosion.get();
+    private static final Integer speedUpThresholdFire = Config.config.speedUpTresholdFire.get();
     private static final boolean onlyHealPastMorning = Config.config.onlyHealPastMorning.get();
 
     public static void handleLevelTick(TickEvent.LevelTickEvent event )
     {
-//        event.world.getServer().getPlayerList().getPlayers().forEach( a ->
-//        {
-//            System.out.println( a.getUniqueID() + " " + a.getName().getString() );
-//        });
         Level level = event.level;
         ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
         dimForceHeal.computeIfAbsent(dimResLoc, key -> new HashSet<>());
@@ -58,19 +56,11 @@ public class WorldTickHandler
             {
                 if( ( !dimWasDay.get( dimResLoc ) && isDayTime( level ) ) || forceHeal )
                 {
-                    blocksToHeal.forEach( blockToHeal ->
-                    {
-                        blockToHeal.ticksLeft = -1;
-                    });
+                    blocksToHeal.forEach( blockToHeal ->  blockToHeal.ticksLeft--);
                 }
             }
             else
-            {
-                blocksToHeal.forEach( blockToHeal ->
-                {
-                    blockToHeal.ticksLeft--;
-                });
-            }
+                blocksToHeal.forEach( blockToHeal -> blockToHeal.ticksLeft--);
 
             dimLastHeal.computeIfAbsent(dimResLoc, key -> new ConcurrentHashMap<>());
 
@@ -84,7 +74,10 @@ public class WorldTickHandler
 
     private static boolean isDayTime( Level level )
     {
-        return level.getServer().getLevel( Level.OVERWORLD ).isDay();
+        MinecraftServer server = level.getServer();
+        if (server == null) return true;
+        ServerLevel overworld = server.getLevel(Level.OVERWORLD);
+        return overworld != null && overworld.isDay();
     }
 
     private static void healBlocks( Level level, List<BlockInfo> allBlocksToHeal, int type, boolean forceHeal )
@@ -94,17 +87,17 @@ public class WorldTickHandler
         if( allBlocksToHeal.size() > 0 )
         {
             double ticksPerHeal;
-            int speedUpTreshold;
+            int speedUpThreshold;
 
             if( type == 0 )
             {
                 ticksPerHeal = ticksPerHealExplosion;
-                speedUpTreshold = speedUpTresholdExplosion;
+                speedUpThreshold = speedUpThresholdExplosion;
             }
             else
             {
                 ticksPerHeal = ticksPerHealFire;
-                speedUpTreshold = speedUpTresholdFire;
+                speedUpThreshold = speedUpThresholdFire;
             }
 
             dimLastHeal.get(dimResLoc).putIfAbsent(type, 0D);
@@ -112,8 +105,8 @@ public class WorldTickHandler
             int toHeal;
             double cost;
 
-            if( allBlocksToHeal.size() > speedUpTreshold && speedUpTreshold > 0 )      //get cost, scale if needed
-                cost = ticksPerHeal * ( speedUpTreshold / (double) (allBlocksToHeal.size() ) );
+            if( allBlocksToHeal.size() > speedUpThreshold && speedUpThreshold > 0 )      //get cost, scale if needed
+                cost = ticksPerHeal * ( speedUpThreshold / (double) (allBlocksToHeal.size() ) );
             else
                 cost = ticksPerHeal;
 
@@ -127,7 +120,6 @@ public class WorldTickHandler
             boolean chunkExists;
             int healed = 0;
             final Set<BlockInfo> healedBlocks = new HashSet<>();
-            final Set<BlockInfo> blocksToHealNow = new HashSet<>();
 
             while( healed < toHeal || forceHeal )
             {
@@ -181,7 +173,7 @@ public class WorldTickHandler
 
             level.getEntitiesOfClass( Entity.class, new AABB( pos, pos.above().south().east() ) ).forEach(a ->
             {
-                BlockPos entityPos = new BlockPos( a.position() );
+                BlockPos entityPos = a.blockPosition();
                 int i = 1;
                 while( level.getBlockState( entityPos.above( i ) ).canOcclude() || level.getBlockState( entityPos.above( i + 1 ) ).canOcclude() )
                 {
@@ -223,10 +215,7 @@ public class WorldTickHandler
             if( !dimForceHeal.containsKey( key ) )
                 dimForceHeal.put( key, new HashSet<>() );
 
-            value.forEach( (key2, value2) ->
-            {
-                dimForceHeal.get( key ).add( key2 );
-            });
+            value.forEach( (key2, value2) -> dimForceHeal.get( key ).add( key2 ));
         });
     }
 }

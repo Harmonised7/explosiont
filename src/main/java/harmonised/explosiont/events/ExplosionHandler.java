@@ -33,12 +33,11 @@ public class ExplosionHandler
             final Level level = event.getLevel();
             final ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
 
-            if( !ChunkDataHandler.toHealDimMap.containsKey( dimResLoc ) )
-                ChunkDataHandler.toHealDimMap.put( dimResLoc, new ConcurrentHashMap<>() );
-            if( !ChunkDataHandler.toHealDimMap.get( dimResLoc ).containsKey( 0 ) )
-                ChunkDataHandler.toHealDimMap.get( dimResLoc ).put( 0, new ArrayList<>() );
-
-            final List<BlockInfo> blocksToHeal = ChunkDataHandler.toHealDimMap.get( dimResLoc ).get( 0 );
+            final Map<Integer, List<BlockInfo>> dimMap = ChunkDataHandler.toHealDimMap
+                                                            .computeIfAbsent(dimResLoc, key -> new ConcurrentHashMap<>());
+            final List<BlockInfo> blocksToHeal = dimMap.containsKey(0) ?
+                    new ArrayList<>(dimMap.get(0)):
+                    new ArrayList<>();
             int i = 0;
             final List<BlockPos> affectedBlocks = event.getAffectedBlocks();
             affectedBlocks.sort(Util.blockPosComparator);
@@ -82,9 +81,9 @@ public class ExplosionHandler
                 }
             });
 
-            blocksToHeal.removeAll( blocks );
             blocksToHeal.addAll( blocks );
             blocksToHeal.sort(Util.blockInfoComparator);
+            dimMap.put(0, blocksToHeal);
         }
     }
 }

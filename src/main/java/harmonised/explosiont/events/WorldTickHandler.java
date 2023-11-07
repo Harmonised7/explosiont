@@ -2,6 +2,7 @@ package harmonised.explosiont.events;
 
 import harmonised.explosiont.config.Config;
 import harmonised.explosiont.util.BlockInfo;
+import harmonised.explosiont.util.Reference;
 import harmonised.explosiont.util.RegistryHelper;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.MinecraftServer;
@@ -42,6 +43,8 @@ public class WorldTickHandler
     public static void handleLevelTick(TickEvent.LevelTickEvent event )
     {
         Level level = event.level;
+        if(level.isClientSide)
+            return;
         ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
         dimForceHeal.computeIfAbsent(dimResLoc, key -> new HashSet<>());
         boolean forceHeal;
@@ -167,7 +170,7 @@ public class WorldTickHandler
                 blockInfo.state = blockInfo.state.trySetValue( GrassBlock.SNOWY, false );
             if( blockInfo.state.hasProperty( LeavesBlock.DISTANCE ) )
                 blockInfo.state = blockInfo.state.trySetValue( LeavesBlock.DISTANCE, 1 );
-            level.setBlock( pos, blockInfo.state, blockInfo.type == 0 ? 3 : 2 | 16 );
+            level.setBlock( pos, blockInfo.state, Reference.SET_BLOCK_TAGS );
             if (blockInfo.BlockEntityNBT != null && blockInfo.BlockEntityNBT.size() > 0)
                 level.setBlockEntity( BlockEntity.loadStatic( blockInfo.pos, blockInfo.state, blockInfo.BlockEntityNBT ) );
 

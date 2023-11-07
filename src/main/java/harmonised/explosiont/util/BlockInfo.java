@@ -9,13 +9,13 @@ import javax.annotation.Nullable;
 
 public class BlockInfo
 {
-    public ResourceLocation dimResLoc;
+    public final ResourceLocation dimResLoc;
     public BlockState state;
-    public BlockPos pos;
-    public CompoundTag BlockEntityNBT;
+    public final BlockPos pos;
+    public final CompoundTag BlockEntityNBT;
     public int ticksLeft;
-    public int type;
-    public boolean forceHeal = false;
+    public final int type;
+    public final boolean forceHeal = false;
 
     public BlockInfo( ResourceLocation dimResLoc, BlockState state, BlockPos blockPos, int ticksLeft, int type, @Nullable CompoundTag BlockEntityNBT )
     {

@@ -8,23 +8,9 @@ public class Util
 {
 
 
-    public static Comparator<BlockInfo> blockInfoComparator = new Comparator<BlockInfo>()
-    {
-        @Override
-        public int compare(BlockInfo a, BlockInfo b)
-        {
-            return sortByY(a, b);
-        }
-    };
+    public static Comparator<BlockInfo> blockInfoComparator = Util::sortByY;
 
-    public static Comparator<BlockPos> blockPosComparator = new Comparator<BlockPos>()
-    {
-        @Override
-        public int compare(BlockPos a, BlockPos b)
-        {
-            return sortByY(a, b);
-        }
-    };
+    public static Comparator<BlockPos> blockPosComparator = Util::sortByY;
 
     public static int sortByY(BlockInfo a, BlockInfo b)
     {

@@ -30,38 +30,66 @@ public class JsonConfig
     {
         try
         {
-            File dataFile = FMLPaths.CONFIGDIR.get().resolve( dataPath ).toFile();
-            if( !dataFile.exists() )
-                createData( dataFile );
-            data = readFromFile( dataFile.getPath() );
+            File dataFile = FMLPaths.CONFIGDIR.get().resolve(dataPath).toFile();
+            if(!dataFile.exists())
+                createData(dataFile);
+            data = readFromFile(dataFile.getPath());
 
-            if( data.containsKey( "filter" ) )
+            if(data.containsKey("filter"))
             {
                 BlackList.filter = new HashSet<>();
 
-                for( String item : data.get( "filter" ) )
+                for(String itemKeyString : data.get("filter"))
                 {
-                    if( ForgeRegistries.ITEMS.containsKey( new ResourceLocation( item ) ) )
-                        BlackList.filter.add( item );
-                    else
-                        LogHandler.LOGGER.info( "Explosion't filter invalid block: \"" + item + "\"" );
+                    try
+                    {
+                        final ResourceLocation itemKey = new ResourceLocation(itemKeyString);
+                        if(ForgeRegistries.ITEMS.containsKey(itemKey))
+                            BlackList.filter.add(itemKey);
+                        else
+                            LogHandler.LOGGER.info("Explosion't filter invalid block: \"" + itemKeyString + "\"");
+                    }
+                    catch(Exception e)
+                    {
+                        System.out.println("Invalid ResourceLocation format: " + itemKeyString);
+                        e.printStackTrace();
+                    }
                 }
             }
+            if(data.containsKey("dimension_filter"))
+            {
+                BlackList.dimensionFilter = new HashSet<>();
+
+                for(String dimensionKeyString : data.get("dimension_filter"))
+                {
+                    try
+                    {
+                        final ResourceLocation dimensionKey = new ResourceLocation(dimensionKeyString);
+                        BlackList.dimensionFilter.add(dimensionKey);
+                    }
+                    catch(Exception e)
+                    {
+                        System.out.println("Invalid ResourceLocation format: " + dimensionKeyString);
+                        e.printStackTrace();
+                    }
+                }
+            }
+
         }
-        catch( Exception e )
+        catch(Exception e)
         {
-            System.out.println( e );
+            System.out.println(e);
         }
     }
 
-    public static Map<String, Set<String>> readFromFile( String path )
+    public static Map<String, Set<String>> readFromFile(String path)
     {
         try (
-                InputStream input = new FileInputStream( path );
-                Reader reader = new BufferedReader( new InputStreamReader( input ) );
-        )
+                InputStream input = new FileInputStream(path);
+                Reader reader = new BufferedReader(new InputStreamReader(input));
+       )
         {
-            return gson.fromJson( reader, mapType );
+            return gson.fromJson(reader, mapType);
         }
         catch (IOException e)
         {
@@ -71,26 +99,26 @@ public class JsonConfig
         }
     }
 
-    private static void createData( File dataFile )
+    private static void createData(File dataFile)
     {
         try     //create template data file
         {
             dataFile.getParentFile().mkdir();
             dataFile.createNewFile();
         }
-        catch( IOException e )
+        catch(IOException e)
         {
-            LogHandler.LOGGER.error( "Could not create template json config!", dataFile.getPath(), e );
+            LogHandler.LOGGER.error("Could not create template json config!", dataFile.getPath(), e);
         }
 
-        try( InputStream inputStream = ExplosiontMod.class.getResourceAsStream( hardDataPath );
-            FileOutputStream outputStream = new FileOutputStream( dataFile ); )
+        try(InputStream inputStream = ExplosiontMod.class.getResourceAsStream(hardDataPath);
+            FileOutputStream outputStream = new FileOutputStream(dataFile))
         {
-            IOUtils.copy( inputStream, outputStream );
+            IOUtils.copy(inputStream, outputStream);
         }
-        catch( IOException e )
+        catch(IOException e)
         {
-            LogHandler.LOGGER.error( "Error copying over default json config to " + dataFile.getPath(), dataFile.getPath(), e );
+            LogHandler.LOGGER.error("Error copying over default json config to " + dataFile.getPath(), dataFile.getPath(), e);
         }
     }
 }

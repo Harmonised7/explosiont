@@ -27,11 +27,15 @@ public class ExplosionHandler
     {
         if( ExplosionHealingEnabled )
         {
+            final ResourceLocation dimResLoc = Util.getId(event.getLevel());
+            if(!BlackList.checkDimension(dimResLoc))
+            {
+                return;
+            }
             if( OnlyHealCreepers && !( event.getExplosion().getDamageSource().getEntity() instanceof Creeper) )
                 return;
             final List<BlockInfo> blocks = new ArrayList<>();
             final Level level = event.getLevel();
-            final ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
 
             final Map<Integer, List<BlockInfo>> dimMap = ChunkDataHandler.toHealDimMap
                                                             .computeIfAbsent(dimResLoc, key -> new ConcurrentHashMap<>());
@@ -47,7 +51,7 @@ public class ExplosionHandler
                 BlockState blockState = level.getBlockState( blockPos );
                 final Block block = blockState.getBlock();
 
-                if( BlackList.checkBlock( RegistryHelper.getBlockResLoc(block).toString() ) && level.getBlockState( blockPos ).canDropFromExplosion( level, blockPos, event.getExplosion() ) )
+                if( BlackList.checkBlock( RegistryHelper.getBlockResLoc(block) ) && level.getBlockState( blockPos ).canDropFromExplosion( level, blockPos, event.getExplosion() ) )
                 {
                     if( block.equals( Blocks.NETHER_PORTAL ) )
                         blockState = Blocks.FIRE.defaultBlockState();

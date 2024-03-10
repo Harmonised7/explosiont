@@ -1,6 +1,7 @@
 package harmonised.explosiont.util;
 
 import harmonised.explosiont.config.Config;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,30 +9,42 @@ import java.util.Set;
 public class BlackList
 {
     public static Filter filterType = Config.config.filterType.get() ? Filter.WHITELIST : Filter.BLACKLIST;
-    public static final Set<String> blackList = new HashSet<>();
-    public static Set<String> filter = new HashSet<>();
+    public static Filter dimensionFilterType = Config.config.dimensionFilterType.get() ? Filter.WHITELIST : Filter.BLACKLIST;
+    public static final Set<ResourceLocation> blackList = new HashSet<>();
+    public static Set<ResourceLocation> filter = new HashSet<>();
+    public static Set<ResourceLocation> dimensionFilter = new HashSet<>();
 
     public static void init()
     {
-        blackList.add( "minecraft:air" );
-        blackList.add( "minecraft:cave_air" );
-        blackList.add( "minecraft:void_air" );
-        blackList.add( "minecraft:fire" );
+        blackList.add(new ResourceLocation("minecraft", "air"));
+        blackList.add(new ResourceLocation("minecraft", "cave_air"));
+        blackList.add(new ResourceLocation("minecraft", "void_air"));
+        blackList.add(new ResourceLocation("minecraft", "fire"));
 
-        blackList.add( "gravestone:gravestone" );
+        blackList.add(new ResourceLocation("gravestone", "gravestone"));
     }
 
-    public static boolean checkBlock( String regName )
+    public static boolean check(ResourceLocation regKey, Set<ResourceLocation> filterSet, Filter filter)
     {
-        if( BlackList.blackList.contains( regName ) )
+        if(filterType.equals(Filter.BLACKLIST) && filterSet.contains(regKey))
             return false;
 
-        if( filterType.equals( Filter.BLACKLIST ) && filter.contains( regName ) )
-            return false;
-
-        if( filterType.equals( Filter.WHITELIST ) && !filter.contains( regName ) )
+        if(filterType.equals(Filter.WHITELIST) && !filterSet.contains(regKey))
             return false;
 
         return true;
+    }
+
+    public static boolean checkBlock(ResourceLocation regKey)
+    {
+        if(BlackList.blackList.contains(regKey))
+            return false;
+
+        return check(regKey, filter, filterType);
+    }
+
+    public static boolean checkDimension(ResourceLocation regKey)
+    {
+        return check(regKey, dimensionFilter, dimensionFilterType);
     }
 }

@@ -25,10 +25,14 @@ public class TryCatchFireHandler
     {
         if( FireHealingEnabled )
         {
-            final BlockState state = level.getBlockState( pos );
-            if( !BlackList.checkBlock( RegistryHelper.getBlockResLoc(state).toString() ) )
+            final ResourceLocation dimResLoc = Util.getId(level);
+            if(!BlackList.checkDimension(dimResLoc))
             {
-                ResourceLocation dimResLoc = RegistryHelper.getDimensionResLoc( level );
+                return;
+            }
+            final BlockState state = level.getBlockState( pos );
+            if( !BlackList.checkBlock( RegistryHelper.getBlockResLoc(state) ) )
+            {
                 BlockEntity tileEntity = level.getBlockEntity( pos );
 
                 if (!ChunkDataHandler.toHealDimMap.containsKey(dimResLoc))
